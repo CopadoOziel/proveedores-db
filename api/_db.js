@@ -1,7 +1,8 @@
-
 import mongoose from 'mongoose';
+
 let cached = global.mongoose;
 if (!cached) cached = global.mongoose = { conn: null, promise: null };
+
 export async function connectDB(){
   if (cached.conn) return cached.conn;
   if (!cached.promise){
@@ -11,20 +12,26 @@ export async function connectDB(){
   cached.conn = await cached.promise;
   return cached.conn;
 }
+
 const marcaSchema = new mongoose.Schema({
   nombreMarca: String,
   categoria: String,
   pais: String
 }, { collection: 'marcas' });
 
-const proveedorSchema = new mongoose.Schema({
-  nombreProveedor: { type: String, required: true },
+// AHORA CON TIPO
+const ProveedorSchema = new mongoose.Schema({
+  nombre: { type: String, required: true },
+  tipoProveedor: {
+    type: String,
+    enum: ['electrico', 'electronico', 'mecanico', 'materia prima', 'general'],
+    default: 'general'
+  },
+  marcas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Marca' }],
   contacto: String,
   telefono: String,
-  ciudad: String,
-  marcas: [String],
-  estatus: { type: String, default: 'Activo' }
-}, { collection: 'proveedores', timestamps: false });
+  activo: { type: Boolean, default: true }
+}, { timestamps: true });
 
 export const Marca = mongoose.models.Marca || mongoose.model('Marca', marcaSchema);
-export const Proveedor = mongoose.models.Proveedor || mongoose.model('Proveedor', proveedorSchema);
+export const Proveedor = mongoose.models.Proveedor || mongoose.model('Proveedor', ProveedorSchema);
