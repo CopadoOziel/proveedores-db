@@ -1,10 +1,15 @@
-
 import { connectDB, Marca } from './_db.js';
-export default async function handler(req,res){
- try{
+
+export default async function handler(req, res){
   await connectDB();
-  if(req.method==='GET'){ const data=await Marca.find().limit(100); return res.status(200).json(data); }
-  if(req.method==='POST'){ const doc=await Marca.create(req.body); return res.status(201).json(doc); }
-  return res.status(405).json({error:'Method not allowed'});
- }catch(e){ return res.status(500).json({error:e.message}); }
+  if (req.method === 'GET'){
+    const marcas = await Marca.find().sort({ nombreMarca: 1 });
+    return res.json(marcas);
+  }
+  if (req.method === 'POST'){
+    const { nombreMarca, categoria, pais } = req.body;
+    const nueva = await Marca.create({ nombreMarca, categoria, pais });
+    return res.status(201).json(nueva);
+  }
+  return res.status(405).json({ error: 'Method not allowed' });
 }
