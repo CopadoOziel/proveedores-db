@@ -19,19 +19,27 @@ const marcaSchema = new mongoose.Schema({
   pais: String
 }, { collection: 'marcas' });
 
-// AHORA CON TIPO
 const ProveedorSchema = new mongoose.Schema({
-  nombre: { type: String, required: true },
+  nombreProveedor: { type: String, required: true },
+  nombre: { type: String }, // compatibilidad
   tipoProveedor: {
     type: String,
     enum: ['electrico', 'electronico', 'mecanico', 'materia prima', 'general'],
     default: 'general'
   },
-  marcas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Marca' }],
+  marcas: [String],
   contacto: String,
   telefono: String,
+  ciudad: String,
+  estatus: { type: String, default: 'Activo' },
   activo: { type: Boolean, default: true }
-}, { timestamps: true });
+}, { collection: 'proveedores', timestamps: true });
+
+const TipoSchema = new mongoose.Schema({
+  nombre: { type: String, required: true, unique: true },
+  descripcion: String
+}, { collection: 'tiposProveedor', timestamps: true });
 
 export const Marca = mongoose.models.Marca || mongoose.model('Marca', marcaSchema);
 export const Proveedor = mongoose.models.Proveedor || mongoose.model('Proveedor', ProveedorSchema);
+export const TipoProveedor = mongoose.models.TipoProveedor || mongoose.model('TipoProveedor', TipoSchema);
