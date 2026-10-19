@@ -1,5 +1,4 @@
 import { connectDB, Proveedor } from './_db.js';
-
 export default async function handler(req, res){
   await connectDB();
   if (req.method === 'GET'){
@@ -14,10 +13,7 @@ export default async function handler(req, res){
       const { nombreProveedor, nombre, tipoProveedor, marcas, contacto, telefono, ciudad, estatus } = req.body;
       const nombreFinal = (nombreProveedor || nombre || '').trim();
       if(!nombreFinal) return res.status(400).json({ error: 'nombreProveedor requerido' });
-      
-      // Normalizar tipo - si no está en enum, usa general pero permite cualquier tipo custom si existe en tiposProveedor
       let tipoFinal = (tipoProveedor || 'general').toLowerCase().trim();
-      
       const nuevo = await Proveedor.create({
         nombreProveedor: nombreFinal,
         nombre: nombreFinal,
@@ -29,9 +25,7 @@ export default async function handler(req, res){
         estatus: estatus || 'Activo'
       });
       return res.status(201).json(nuevo);
-    }catch(e){
-      return res.status(500).json({ error: e.message });
-    }
+    }catch(e){ return res.status(500).json({ error: e.message }); }
   }
   return res.status(405).json({ error: 'Method not allowed' });
 }
