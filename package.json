@@ -1,5 +1,8 @@
 {
-  "name": "proveedores-conectado",
+  "name": "proveedores-db",
+  "version": "1.0.0",
   "type": "module",
-  "dependencies": { "mongoose": "^8.0.0" }
+  "dependencies": {
+    "mongoose": "^8.0.0"
+  }
 }
