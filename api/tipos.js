@@ -44,6 +44,21 @@ export default async function handler(req,res){
       return res.status(500).json({ error: e.message });
     }
   }
+  if(req.method==='PUT'){
+    try{
+      const { id } = req.query;
+      if(!id) return res.status(400).json({ error: 'Falta id' });
+      const { nombre, descripcion, color } = req.body;
+      let doc = null;
+      try{ doc = await Tipo.findById(id); }catch{ doc = await Tipo.findOne({ nombre: id }); }
+      if(!doc) return res.status(404).json({ error: 'Tipo no encontrado' });
+      if(nombre) doc.nombre = nombre.toLowerCase().trim();
+      if(descripcion!==undefined) doc.descripcion = descripcion;
+      if(color) doc.color = color.toLowerCase().trim();
+      await doc.save();
+      return res.status(200).json(doc);
+    }catch(e){ return res.status(500).json({ error: e.message }); }
+  }
   if(req.method==='DELETE'){
     const { id } = req.query;
     if(!id) return res.status(400).json({error:'falta id'});

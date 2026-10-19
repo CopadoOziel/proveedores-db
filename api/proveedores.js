@@ -30,22 +30,20 @@ export default async function handler(req, res){
   if (req.method === 'PUT'){
     try{
       const { id } = req.query;
-      if(!id) return res.status(400).json({ error: 'Falta id en query ?id=' });
+      if(!id) return res.status(400).json({ error: 'Falta id' });
       const update = { ...req.body };
       if(update.nombreProveedor) update.nombre = update.nombreProveedor;
       if(update.nombre && !update.nombreProveedor) update.nombreProveedor = update.nombre;
       if(update.tipoProveedor) update.tipoProveedor = update.tipoProveedor.toLowerCase().trim();
       const updated = await Proveedor.findByIdAndUpdate(id, update, { new: true });
-      if(!updated) return res.status(404).json({ error: 'Proveedor no encontrado' });
       return res.status(200).json(updated);
     }catch(e){ return res.status(500).json({ error: e.message }); }
   }
   if (req.method === 'DELETE'){
     try{
       const { id } = req.query;
-      if(!id) return res.status(400).json({ error: 'Falta id en query ?id=' });
-      const del = await Proveedor.findByIdAndDelete(id);
-      if(!del) return res.status(404).json({ error: 'Proveedor no encontrado' });
+      if(!id) return res.status(400).json({ error: 'Falta id' });
+      await Proveedor.findByIdAndDelete(id);
       return res.status(200).json({ ok: true });
     }catch(e){ return res.status(500).json({ error: e.message }); }
   }
