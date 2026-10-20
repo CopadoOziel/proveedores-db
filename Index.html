@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Base de Datos - Proveedores | Conectado a MongoDB</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf9f6;--surface:#fff;--surface-2:#f2f0eb;--text:#1a1a18;--muted:#8a8882;--border:#e8e5de;--accent:#ff4d12;--accent-h:#e8440e;--ink:#11110f}
+*{box-sizing:border-box;font-family:Instrument Sans,sans-serif}body{margin:0;background:var(--bg);color:var(--text)}
+.font-display{font-family:Newsreader,serif}
+.max{max-width:1280px;margin:0 auto;padding:0 24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:0 2px 20px rgba(0,0,0,.04)}
+.btn{border-radius:9999px;height:44px;padding:0 20px;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--surface)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-accent:hover{background:var(--accent-h)}
+.btn-dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.input{width:100%;height:44px;border-radius:12px;border:1px solid var(--border);padding:0 14px;font-size:14px;background:var(--surface)}
+.input:focus{border-color:var(--ink);outline:none}
+select.input{cursor:pointer}
+.badge{font-size:11px;padding:4px 10px;border-radius:9999px;border:1px solid var(--border);background:var(--surface-2)}
+.modal-bg{position:fixed;inset:0;background:rgba(17,17,15,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal-bg.open{display:flex}
+.modal{width:100%;max-width:640px;background:var(--surface);border-radius:24px;padding:28px;border:1px solid var(--border);max-height:92vh;overflow:auto}
+.modal-wide{max-width:780px}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:768px){.grid{grid-template-columns:1fr 1fr}}
+@media(min-width:1024px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.badge-tipo{font-size:11px;padding:4px 10px;border-radius:9999px;font-weight:600;border:1px solid}
+.tipo-electrico{background:#dbeafe;color:#1e40af;border-color:#bfdbfe}
+.tipo-electronico{background:#fef3c7;color:#92400e;border-color:#fde68a}
+.tipo-mecanico{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+.tipo-materia{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+.tipo-general{background:#f2f0eb;color:#57534e;border-color:var(--border)}
+.tipo-hidraulico{background:#e0e7ff;color:#3730a3;border-color:#c7d2fe}
+.tipo-control{background:#ccfbf1;color:#134e4a;border-color:#99f6e0}
+.tipo-naranja{background:#ffedd5;color:#9a3412;border-color:#fed7aa}
+.tipo-morado{background:#f3e8ff;color:#6b21a8;border-color:#e9d5ff}
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:var(--surface-2)}
+</style></head><body>
+<header class="max" style="padding:40px 24px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:end">
+<div><h1 class="font-display" style="font-size:42px;margin:0;line-height:.9">Base de Datos <span style="color:var(--muted);font-weight:300">Proveedores</span></h1>
+<p id="statusDB" style="font-size:12px;color:var(--muted);margin:6px 0 0"><span class="status-dot" style="background:#fbbf24"></span> Conectando a MongoDB...</p></div>
+<div style="display:flex;gap:10px"><span id="countMarcas" class="badge">0 marcas</span><span id="countProv" class="badge">0 proveedores</span><span id="countTipos" class="badge">0 tipos</span></div>
+</header>
+
+<div class="max" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+<input id="search" class="input" style="flex:1;min-width:240px" placeholder="Buscar por proveedor, marca (Truper, Bosch), contacto, ciudad, tipo...">
+<select id="filtroTipo" class="input" style="width:180px"><option value="todos">Todos los tipos</option></select>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn btn-accent" onclick="openAdd()">+ Agregar proveedor</button>
+<button class="btn btn-dark" onclick="openGestionMarcas()">⚙️ Gestionar marcas</button>
+<button class="btn" style="background:#fff" onclick="openGestionTipos()">⚙️ Gestionar tipos</button>
+</div>
+</div>
+
+<div class="max">
+<div style="margin-bottom:20px"><h3 class="font-display" style="margin:0 0 12px">Tipos de Proveedor</h3><div id="listTipos" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
+<h3 class="font-display" style="margin:0 0 12px">Proveedores (colección proveedores)</h3><div id="grid" class="grid"></div>
+</div>
+
+<!-- MODAL PROVEEDOR -->
+<div id="modalForm" class="modal-bg"><div class="modal">
+<h2 class="font-display" style="font-size:22px;margin:0">Proveedor</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">nombreProveedor *</label><input id="f_nombreProveedor" class="input" style="margin-top:4px"></div>
+<div><label style="font-size:11px;font-weight:600">TIPO *</label><select id="f_tipoProveedor" class="input" style="margin-top:4px"></select></div>
+<div><label style="font-size:11px;font-weight:600">ciudad</label><input id="f_ciudad" class="input" style="margin-top:4px"></div>
+<div><label style="font-size:11px;font-weight:600">contacto</label><input id="f_contacto" class="input" style="margin-top:4px"></div>
+<div><label style="font-size:11px;font-weight:600">telefono</label><input id="f_telefono" class="input" style="margin-top:4px"></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">marcas (selecciona de marcas existentes)</label><div id="checkMarcas" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
+</div>
+<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeModal()">Cancelar</button><button class="btn btn-accent" style="flex:1" onclick="saveProveedor()">Guardar</button></div>
+</div></div>
+
+<!-- MODAL GESTION MARCAS -->
+<div id="modalGestionMarcas" class="modal-bg"><div class="modal modal-wide">
+<h2 class="font-display" style="font-size:22px;margin:0">Gestionar Marcas</h2>
+<p style="font-size:12px;color:var(--muted)">Aquí puedes agregar, modificar y eliminar marcas. Todo se guarda en MongoDB colección marcas.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0">
+<input id="gm_nombre" class="input" placeholder="Nombre marca *">
+<input id="gm_categoria" class="input" placeholder="Categoría">
+<input id="gm_pais" class="input" placeholder="País">
+</div>
+<div style="display:flex;gap:10px;margin-bottom:16px">
+<button class="btn btn-accent" style="flex:1" onclick="saveGestionMarca()">+ Guardar marca</button>
+<button class="btn" style="flex:1" id="btnCancelEditMarca" onclick="cancelEditMarca()" style="display:none">Cancelar edición</button>
+</div>
+<div style="max-height:40vh;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px">
+<div id="listaGestionMarcas"></div>
+</div>
+<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionMarcas()">Cerrar</button></div>
+</div></div>
+
+<!-- MODAL GESTION TIPOS -->
+<div id="modalGestionTipos" class="modal-bg"><div class="modal modal-wide">
+<h2 class="font-display" style="font-size:22px;margin:0">Gestionar Tipos de Proveedor</h2>
+<p style="font-size:12px;color:var(--muted)">Agrega, modifica color y elimina tipos. Se guarda en tiposProveedor.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
+<input id="gt_nombre" class="input" placeholder="Nombre tipo * ej: hidraulico">
+<select id="gt_color" class="input">
+<option value="electrico">🔵 Azul - Eléctrico</option>
+<option value="electronico">🟡 Amarillo - Electrónico</option>
+<option value="mecanico">🔴 Rojo - Mecánico</option>
+<option value="materia">🟢 Verde - Materia Prima</option>
+<option value="general">⚪ Gris - General</option>
+<option value="hidraulico">💜 Lila - Hidráulico</option>
+<option value="control">🩵 Turquesa - Control</option>
+<option value="naranja">🟠 Naranja</option>
+<option value="morado">💜 Morado</option>
+</select>
+<input id="gt_desc" class="input" style="grid-column:1/-1" placeholder="Descripción opcional">
+</div>
+<div style="display:flex;gap:10px;margin-bottom:16px">
+<button class="btn btn-accent" style="flex:1" onclick="saveGestionTipo()">+ Guardar tipo</button>
+<button class="btn" style="flex:1" id="btnCancelEditTipo" onclick="cancelEditTipo()" style="display:none">Cancelar edición</button>
+</div>
+<div style="max-height:40vh;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px">
+<div id="listaGestionTipos"></div>
+</div>
+<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionTipos()">Cerrar</button></div>
+</div></div>
+
+<div id="modalDel" class="modal-bg"><div class="modal" style="max-width:400px"><h3 class="font-display">Eliminar</h3><p style="font-size:13px;color:var(--muted)" id="delMsg">Se eliminará de MongoDB.</p><div style="display:flex;gap:12px;margin-top:16px"><button class="btn" style="flex:1" onclick="closeDel()">Cancelar</button><button class="btn btn-accent" style="flex:1;background:var(--ink)" onclick="confirmDelete()">Eliminar</button></div></div></div>
+<div id="toast" style="position:fixed;left:16px;bottom:16px;background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:9999px;font-size:13px;display:none;z-index:60"></div>
+
+<script>
+let proveedores=[], marcas=[], tipos=[], editingId=null, deleteId=null, deleteType=null;
+let editMarcaId=null, editTipoId=null;
+
+async function api(path, opts={}){ const r=await fetch(path, {...opts, headers:{'Content-Type':'application/json', ...(opts.headers||{})}}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
+function badgeTipo(nombre, color){
+  let c = (color||nombre||'general').toLowerCase();
+  if(c.includes('hidraul')) return `<span class="badge-tipo tipo-hidraulico">● ${nombre}</span>`;
+  if(c.includes('control')) return `<span class="badge-tipo tipo-control">● ${nombre}</span>`;
+  if(c.includes('naranja')) return `<span class="badge-tipo tipo-naranja">● ${nombre}</span>`;
+  if(c.includes('morado')) return `<span class="badge-tipo tipo-morado">● ${nombre}</span>`;
+  if(c.includes('electric') && !c.includes('electron')) return `<span class="badge-tipo tipo-electrico">● ${nombre}</span>`;
+  if(c.includes('electron')) return `<span class="badge-tipo tipo-electronico">● ${nombre}</span>`;
+  if(c.includes('mecan')) return `<span class="badge-tipo tipo-mecanico">● ${nombre}</span>`;
+  if(c.includes('materia')) return `<span class="badge-tipo tipo-materia">● ${nombre}</span>`;
+  return `<span class="badge-tipo tipo-general">○ ${nombre}</span>`;
+}
+async function load(){
+ try{
+  const [m,p,t]=await Promise.all([api('/api/marcas'), api('/api/proveedores'), api('/api/tipos')]);
+  marcas=m; proveedores=p; tipos=t;
+  document.getElementById('statusDB').innerHTML='<span class="status-dot" style="background:#22c55e"></span> Conectado a Cluster0 / proveedoresDB';
+  render();
+  renderGestionMarcas();
+  renderGestionTipos();
+ }catch(e){
+  document.getElementById('statusDB').innerHTML='<span class="status-dot" style="background:#ef4444"></span> Error: '+e.message;
+ }
+}
+function render(){
+ document.getElementById('countMarcas').textContent=marcas.length+' marcas';
+ document.getElementById('countProv').textContent=proveedores.length+' proveedores';
+ document.getElementById('countTipos').textContent=tipos.length+' tipos';
+ document.getElementById('listTipos').innerHTML=tipos.map(t=>badgeTipo(t.nombre, t.color||t.nombre)).join('');
+ const filtro=document.getElementById('filtroTipo');
+ const current=filtro.value;
+ filtro.innerHTML='<option value="todos">Todos los tipos</option>'+tipos.map(t=>`<option value="${t.nombre}">${t.nombre}</option>`).join('');
+ if(current) filtro.value=current;
+ document.getElementById('f_tipoProveedor').innerHTML=tipos.map(t=>`<option value="${t.nombre}">${t.nombre}</option>`).join('');
+ const q=document.getElementById('search').value.toLowerCase().trim();
+ const fT=filtro.value;
+ const filtered=proveedores.filter(p=>{
+  const nombre=(p.nombreProveedor||p.nombre||'').toLowerCase();
+  const contacto=(p.contacto||'').toLowerCase();
+  const ciudad=(p.ciudad||'').toLowerCase();
+  const tipo=(p.tipoProveedor||'').toLowerCase();
+  const marcasStr = Array.isArray(p.marcas) ? p.marcas.join(' ').toLowerCase() : '';
+  const telefono=(p.telefono||'').toLowerCase();
+  const s=!q || nombre.includes(q) || contacto.includes(q) || ciudad.includes(q) || tipo.includes(q) || marcasStr.includes(q) || telefono.includes(q);
+  return s && (fT==='todos'||p.tipoProveedor===fT);
+ });
+ document.getElementById('grid').innerHTML=filtered.map(p=>{
+  const nombre=p.nombreProveedor||p.nombre||'Sin nombre';
+  const marcasTxt = Array.isArray(p.marcas) ? p.marcas.join(', ') : '';
+  const tipoObj = tipos.find(x=>x.nombre===p.tipoProveedor);
+  const colorTipo = tipoObj ? (tipoObj.color||tipoObj.nombre) : p.tipoProveedor;
+  return `<div class="card">
+   <div style="display:flex;justify-content:space-between;gap:8px"><div><div style="font-weight:700">${nombre}</div><div style="font-size:12px;color:var(--muted)">${p.ciudad||''}</div></div>${badgeTipo(p.tipoProveedor||'general', colorTipo)}</div>
+   <div style="font-size:13px;color:var(--muted);margin-top:10px">👤 ${p.contacto||'—'}<br>📞 ${p.telefono||'—'}<br>🏷️ ${marcasTxt||'—'}</div>
+   <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="flex:1;height:36px" onclick="openEdit('${p._id}')">Modificar</button><button class="btn" style="flex:1;height:36px;color:#dc2626;border-color:#fecaca" onclick="openDel('${p._id}','prov')">Eliminar</button></div>
+  </div>`;
+ }).join('') || '<div style="padding:40px;color:var(--muted);text-align:center">Sin resultados</div>';
+ document.getElementById('checkMarcas').innerHTML=marcas.map(m=>`<label style="font-size:12px;display:flex;gap:6px;align-items:center;border:1px solid var(--border);padding:4px 10px;border-radius:9999px;background:var(--surface-2)"><input type="checkbox" value="${m.nombreMarca}" class="chkMarca"> ${m.nombreMarca}</label>`).join('');
+}
+
+function renderGestionMarcas(){
+ document.getElementById('listaGestionMarcas').innerHTML = marcas.map(m=>`
+  <div class="row">
+    <div><b>${m.nombreMarca}</b> <span style="font-size:11px;color:var(--muted)">${m.categoria||''} ${m.pais? '· '+m.pais:''}</span></div>
+    <div style="display:flex;gap:6px"><button class="btn" style="height:32px;font-size:12px" onclick="editMarca('${m._id}')">Editar</button><button class="btn" style="height:32px;font-size:12px;color:#dc2626;border-color:#fecaca" onclick="openDel('${m._id}','marca')">X</button></div>
+  </div>
+ `).join('') || '<div style="padding:20px;color:var(--muted);text-align:center">No hay marcas</div>';
+}
+function renderGestionTipos(){
+ document.getElementById('listaGestionTipos').innerHTML = tipos.map(t=>`
+  <div class="row">
+    <div>${badgeTipo(t.nombre, t.color||t.nombre)} <span style="font-size:11px;color:var(--muted)">${t.descripcion||''}</span></div>
+    <div style="display:flex;gap:6px"><button class="btn" style="height:32px;font-size:12px" onclick="editTipo('${t._id||t.nombre}')">Editar</button><button class="btn" style="height:32px;font-size:12px;color:#dc2626;border-color:#fecaca" onclick="openDel('${t._id||t.nombre}','tipo')">X</button></div>
+  </div>
+ `).join('') || '<div style="padding:20px;color:var(--muted);text-align:center">No hay tipos</div>';
+}
+
+function openAdd(){editingId=null;document.getElementById('f_nombreProveedor').value='';document.getElementById('f_contacto').value='';document.getElementById('f_telefono').value='';document.getElementById('f_ciudad').value='';document.querySelectorAll('.chkMarca').forEach(c=>c.checked=false);document.getElementById('modalForm').classList.add('open')}
+function openEdit(id){const p=proveedores.find(x=>x._id===id);if(!p)return;editingId=id;document.getElementById('f_nombreProveedor').value=p.nombreProveedor||p.nombre||'';document.getElementById('f_tipoProveedor').value=p.tipoProveedor||'general';document.getElementById('f_contacto').value=p.contacto||'';document.getElementById('f_telefono').value=p.telefono||'';document.getElementById('f_ciudad').value=p.ciudad||'';document.querySelectorAll('.chkMarca').forEach(c=>{c.checked=(p.marcas||[]).includes(c.value)});document.getElementById('modalForm').classList.add('open')}
+function closeModal(){document.getElementById('modalForm').classList.remove('open')}
+function openDel(id,type){deleteId=id;deleteType=type;document.getElementById('delMsg').textContent=type==='marca'?'¿Eliminar marca?':type==='tipo'?'¿Eliminar tipo?':'¿Eliminar proveedor? Se eliminará de MongoDB.';document.getElementById('modalDel').classList.add('open')}
+function closeDel(){document.getElementById('modalDel').classList.remove('open');deleteId=null;deleteType=null}
+
+function openGestionMarcas(){editMarcaId=null;document.getElementById('gm_nombre').value='';document.getElementById('gm_categoria').value='';document.getElementById('gm_pais').value='';document.getElementById('btnCancelEditMarca').style.display='none';document.getElementById('modalGestionMarcas').classList.add('open')}
+function closeGestionMarcas(){document.getElementById('modalGestionMarcas').classList.remove('open')}
+function editMarca(id){const m=marcas.find(x=>x._id===id);if(!m)return;editMarcaId=id;document.getElementById('gm_nombre').value=m.nombreMarca;document.getElementById('gm_categoria').value=m.categoria||'';document.getElementById('gm_pais').value=m.pais||'';document.getElementById('btnCancelEditMarca').style.display='block';}
+function cancelEditMarca(){editMarcaId=null;document.getElementById('gm_nombre').value='';document.getElementById('gm_categoria').value='';document.getElementById('gm_pais').value='';document.getElementById('btnCancelEditMarca').style.display='none';}
+async function saveGestionMarca(){
+ const nombre=document.getElementById('gm_nombre').value.trim(); if(!nombre){toast('Nombre obligatorio');return}
+ const body={nombreMarca:nombre,categoria:document.getElementById('gm_categoria').value,pais:document.getElementById('gm_pais').value};
+ try{
+  if(editMarcaId){await api('/api/marcas?id='+editMarcaId,{method:'PUT',body:JSON.stringify(body)})}else{await api('/api/marcas',{method:'POST',body:JSON.stringify(body)})}
+  toast(editMarcaId?'Marca actualizada':'Marca guardada'); cancelEditMarca(); load();
+ }catch(e){toast('Error: '+e.message)}
+}
+
+function openGestionTipos(){editTipoId=null;document.getElementById('gt_nombre').value='';document.getElementById('gt_desc').value='';document.getElementById('gt_color').value='general';document.getElementById('btnCancelEditTipo').style.display='none';document.getElementById('modalGestionTipos').classList.add('open')}
+function closeGestionTipos(){document.getElementById('modalGestionTipos').classList.remove('open')}
+function editTipo(id){const t=tipos.find(x=>x._id===id||x.nombre===id);if(!t)return;editTipoId=t._id||t.nombre;document.getElementById('gt_nombre').value=t.nombre;document.getElementById('gt_desc').value=t.descripcion||'';document.getElementById('gt_color').value=t.color||'general';document.getElementById('btnCancelEditTipo').style.display='block';}
+function cancelEditTipo(){editTipoId=null;document.getElementById('gt_nombre').value='';document.getElementById('gt_desc').value='';document.getElementById('gt_color').value='general';document.getElementById('btnCancelEditTipo').style.display='none';}
+async function saveGestionTipo(){
+ const nombre=document.getElementById('gt_nombre').value.trim().toLowerCase(); if(!nombre){toast('Nombre obligatorio');return}
+ const body={nombre,descripcion:document.getElementById('gt_desc').value,color:document.getElementById('gt_color').value};
+ try{
+  if(editTipoId){await api('/api/tipos?id='+editTipoId,{method:'PUT',body:JSON.stringify(body)})}else{await api('/api/tipos',{method:'POST',body:JSON.stringify(body)})}
+  toast(editTipoId?'Tipo actualizado':'Tipo guardado'); cancelEditTipo(); load();
+ }catch(e){toast('Error: '+e.message)}
+}
+
+async function saveProveedor(){
+ const nombre=document.getElementById('f_nombreProveedor').value.trim(); if(!nombre){toast('nombre obligatorio');return}
+ const marcasSel=[...document.querySelectorAll('.chkMarca:checked')].map(c=>c.value);
+ const body={nombreProveedor:nombre,tipoProveedor:document.getElementById('f_tipoProveedor').value,contacto:document.getElementById('f_contacto').value,telefono:document.getElementById('f_telefono').value,ciudad:document.getElementById('f_ciudad').value,marcas:marcasSel};
+ try{
+  if(editingId){await api('/api/proveedores?id='+editingId,{method:'PUT',body:JSON.stringify(body)})}else{await api('/api/proveedores',{method:'POST',body:JSON.stringify(body)})}
+  toast('Guardado'); closeModal(); load();
+ }catch(e){toast('Error: '+e.message)}
+}
+
+async function confirmDelete(){
+ try{
+  if(deleteType==='marca'){await api('/api/marcas?id='+deleteId,{method:'DELETE'})}
+  else if(deleteType==='tipo'){await api('/api/tipos?id='+deleteId,{method:'DELETE'})}
+  else{await api('/api/proveedores?id='+deleteId,{method:'DELETE'})}
+  toast('Eliminado'); closeDel(); load();
+ }catch(e){toast('Error: '+e.message)}
+}
+
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('filtroTipo').addEventListener('change',render);
+document.getElementById('modalForm').addEventListener('click',e=>{if(e.target.id==='modalForm')closeModal()});
+document.getElementById('modalGestionMarcas').addEventListener('click',e=>{if(e.target.id==='modalGestionMarcas')closeGestionMarcas()});
+document.getElementById('modalGestionTipos').addEventListener('click',e=>{if(e.target.id==='modalGestionTipos')closeGestionTipos()});
+document.getElementById('modalDel').addEventListener('click',e=>{if(e.target.id==='modalDel')closeDel()});
+load();
+</script></body></html>
