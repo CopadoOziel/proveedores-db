@@ -60,14 +60,14 @@ select.input{cursor:pointer}
 <div id="modalForm" class="modal-bg"><div class="modal">
 <h2 class="font-display" style="font-size:22px;margin:0">Proveedor</h2>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">nombreProveedor *</label><input id="f_nombreProveedor" class="input" style="margin-top:4px"></div>
-<div><label style="font-size:11px;font-weight:600">TIPO *</label><select id="f_tipoProveedor" class="input" style="margin-top:4px"></select></div>
-<div><label style="font-size:11px;font-weight:600">ciudad</label><input id="f_ciudad" class="input" style="margin-top:4px" placeholder="Tijuana, Ensenada..."></div>
-<div><label style="font-size:11px;font-weight:600">contacto</label><input id="f_contacto" class="input" style="margin-top:4px" placeholder="Nombre del contacto"></div>
-<div><label style="font-size:11px;font-weight:600">telefono</label><input id="f_telefono" class="input" style="margin-top:4px" placeholder="664..."></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">Nombre de Proveedor *</label><input id="f_nombreProveedor" class="input" style="margin-top:4px"></div>
+<div><label style="font-size:11px;font-weight:600">Tipo *</label><select id="f_tipoProveedor" class="input" style="margin-top:4px"></select></div>
+<div><label style="font-size:11px;font-weight:600">Ciudad</label><input id="f_ciudad" class="input" style="margin-top:4px" placeholder="Tijuana, Ensenada..."></div>
+<div><label style="font-size:11px;font-weight:600">Contacto</label><input id="f_contacto" class="input" style="margin-top:4px" placeholder="Nombre del contacto"></div>
+<div><label style="font-size:11px;font-weight:600">Telefono</label><input id="f_telefono" class="input" style="margin-top:4px" placeholder="664..."></div>
 <div><label style="font-size:11px;font-weight:600">correo *</label><input id="f_correo" class="input" style="margin-top:4px" placeholder="ventas@proveedor.com" type="email"></div>
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">ubicación / dirección</label><input id="f_ubicacion" class="input" style="margin-top:4px" placeholder="Blvd. Industrial #123, Tijuana, BC - o link de Google Maps"></div>
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">marcas (selecciona de marcas existentes)</label><div id="checkMarcas" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">Ubicación / Dirección</label><input id="f_ubicacion" class="input" style="margin-top:4px" placeholder="Blvd. Industrial #123, Tijuana, BC - o link de Google Maps"></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">Marcas (selecciona de marcas existentes)</label><div id="checkMarcas" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
 </div>
 <div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeModal()">Cancelar</button><button class="btn btn-accent" style="flex:1" onclick="saveProveedor()">Guardar</button></div>
 </div></div>
@@ -75,7 +75,7 @@ select.input{cursor:pointer}
 <!-- MODAL GESTION MARCAS -->
 <div id="modalGestionMarcas" class="modal-bg"><div class="modal modal-wide">
 <h2 class="font-display" style="font-size:22px;margin:0">Gestionar Marcas</h2>
-<p style="font-size:12px;color:var(--muted)">Aquí puedes agregar, modificar y eliminar marcas. Todo se guarda en MongoDB colección marcas.</p>
+<p style="font-size:12px;color:var(--muted)">Aquí puedes agregar, modificar y eliminar marcas.</p>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0">
 <input id="gm_nombre" class="input" placeholder="Nombre marca *">
 <input id="gm_categoria" class="input" placeholder="Categoría">
@@ -98,15 +98,15 @@ select.input{cursor:pointer}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
 <input id="gt_nombre" class="input" placeholder="Nombre tipo * ej: hidraulico">
 <select id="gt_color" class="input">
-<option value="electrico">🔵 Azul - Eléctrico</option>
-<option value="electronico">🟡 Amarillo - Electrónico</option>
-<option value="mecanico">🔴 Rojo - Mecánico</option>
-<option value="materia">🟢 Verde - Materia Prima</option>
-<option value="general">⚪ Gris - General</option>
-<option value="hidraulico">💜 Lila - Hidráulico</option>
-<option value="control">🩵 Turquesa - Control</option>
-<option value="naranja">🟠 Naranja</option>
-<option value="morado">💜 Morado</option>
+<option value="electrico">🔵 Electrico </option>
+<option value="electronico">🟡 Electronico </option>
+<option value="mecanico">🔴 Mecanico </option>
+<option value="materia">🟢 Materia </option>
+<option value="general">⚪ General </option>
+<option value="hidraulico">💜 Hidraulica </option>
+<option value="control"> 🤎 Controles </option>
+<option value="naranja">🟠 Logistica y Aduanal </option>
+<option value="morado">🖤 Otro </option>
 </select>
 <input id="gt_desc" class="input" style="grid-column:1/-1" placeholder="Descripción opcional">
 </div>
