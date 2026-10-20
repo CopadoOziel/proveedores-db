@@ -10,7 +10,7 @@ export default async function handler(req, res){
   }
   if (req.method === 'POST'){
     try{
-      const { nombreProveedor, nombre, tipoProveedor, marcas, contacto, telefono, ciudad, estatus } = req.body;
+      const { nombreProveedor, nombre, tipoProveedor, marcas, contacto, telefono, correo, ciudad, ubicacion, direccion, estatus } = req.body;
       const nombreFinal = (nombreProveedor || nombre || '').trim();
       if(!nombreFinal) return res.status(400).json({ error: 'nombreProveedor requerido' });
       let tipoFinal = (tipoProveedor || 'general').toLowerCase().trim();
@@ -21,7 +21,10 @@ export default async function handler(req, res){
         marcas: Array.isArray(marcas) ? marcas : [],
         contacto: (contacto||'').trim(),
         telefono: (telefono||'').trim(),
+        correo: (correo||'').trim(),
         ciudad: (ciudad||'').trim(),
+        ubicacion: (ubicacion||direccion||'').trim(),
+        direccion: (direccion||ubicacion||'').trim(),
         estatus: estatus || 'Activo'
       });
       return res.status(201).json(nuevo);

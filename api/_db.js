@@ -26,7 +26,10 @@ const ProveedorSchema = new mongoose.Schema({
   marcas: [String],
   contacto: String,
   telefono: String,
+  correo: String,
   ciudad: String,
+  ubicacion: String,
+  direccion: String,
   estatus: { type: String, default: 'Activo' },
   activo: { type: Boolean, default: true }
 }, { collection: 'proveedores', timestamps: true });
