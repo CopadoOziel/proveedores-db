@@ -34,6 +34,12 @@ select.input{cursor:pointer}
 .tipo-naranja{background:#ffedd5;color:#9a3412;border-color:#fed7aa}
 .tipo-morado{background:#f3e8ff;color:#6b21a8;border-color:#e9d5ff}
 .row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:var(--surface-2)}
+.marca-chip{font-size:11px;padding:4px 10px;border-radius:9999px;background:var(--surface-2);border:1px solid var(--border);display:inline-block;margin:2px}
+.marca-more{font-size:11px;padding:4px 10px;border-radius:9999px;background:var(--ink);color:#fff;border:1px solid var(--ink);cursor:pointer}
+.view-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.view-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.view-value{font-size:14px;line-height:1.4}
+
 </style></head><body>
 <header class="max" style="padding:40px 24px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:end">
 <div><h1 class="font-display" style="font-size:42px;margin:0;line-height:.9">Base de Datos <span style="color:var(--muted);font-weight:300">Proveedores</span></h1>
@@ -60,14 +66,14 @@ select.input{cursor:pointer}
 <div id="modalForm" class="modal-bg"><div class="modal">
 <h2 class="font-display" style="font-size:22px;margin:0">Proveedor</h2>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">Nombre de Proveedor *</label><input id="f_nombreProveedor" class="input" style="margin-top:4px"></div>
-<div><label style="font-size:11px;font-weight:600">Tipo *</label><select id="f_tipoProveedor" class="input" style="margin-top:4px"></select></div>
-<div><label style="font-size:11px;font-weight:600">Ciudad</label><input id="f_ciudad" class="input" style="margin-top:4px" placeholder="Tijuana, Ensenada..."></div>
-<div><label style="font-size:11px;font-weight:600">Contacto</label><input id="f_contacto" class="input" style="margin-top:4px" placeholder="Nombre del contacto"></div>
-<div><label style="font-size:11px;font-weight:600">Telefono</label><input id="f_telefono" class="input" style="margin-top:4px" placeholder="664..."></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">nombreProveedor *</label><input id="f_nombreProveedor" class="input" style="margin-top:4px"></div>
+<div><label style="font-size:11px;font-weight:600">TIPO *</label><select id="f_tipoProveedor" class="input" style="margin-top:4px"></select></div>
+<div><label style="font-size:11px;font-weight:600">ciudad</label><input id="f_ciudad" class="input" style="margin-top:4px" placeholder="Tijuana, Ensenada..."></div>
+<div><label style="font-size:11px;font-weight:600">contacto</label><input id="f_contacto" class="input" style="margin-top:4px" placeholder="Nombre del contacto"></div>
+<div><label style="font-size:11px;font-weight:600">telefono</label><input id="f_telefono" class="input" style="margin-top:4px" placeholder="664..."></div>
 <div><label style="font-size:11px;font-weight:600">correo *</label><input id="f_correo" class="input" style="margin-top:4px" placeholder="ventas@proveedor.com" type="email"></div>
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">Ubicación / Dirección</label><input id="f_ubicacion" class="input" style="margin-top:4px" placeholder="Blvd. Industrial #123, Tijuana, BC - o link de Google Maps"></div>
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">Marcas (selecciona de marcas existentes)</label><div id="checkMarcas" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">ubicación / dirección</label><input id="f_ubicacion" class="input" style="margin-top:4px" placeholder="Blvd. Industrial #123, Tijuana, BC - o link de Google Maps"></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">marcas (selecciona de marcas existentes)</label><div id="checkMarcas" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
 </div>
 <div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeModal()">Cancelar</button><button class="btn btn-accent" style="flex:1" onclick="saveProveedor()">Guardar</button></div>
 </div></div>
@@ -75,7 +81,7 @@ select.input{cursor:pointer}
 <!-- MODAL GESTION MARCAS -->
 <div id="modalGestionMarcas" class="modal-bg"><div class="modal modal-wide">
 <h2 class="font-display" style="font-size:22px;margin:0">Gestionar Marcas</h2>
-<p style="font-size:12px;color:var(--muted)">Aquí puedes agregar, modificar y eliminar marcas.</p>
+<p style="font-size:12px;color:var(--muted)">Aquí puedes agregar, modificar y eliminar marcas. Todo se guarda en MongoDB colección marcas.</p>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0">
 <input id="gm_nombre" class="input" placeholder="Nombre marca *">
 <input id="gm_categoria" class="input" placeholder="Categoría">
@@ -98,15 +104,15 @@ select.input{cursor:pointer}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
 <input id="gt_nombre" class="input" placeholder="Nombre tipo * ej: hidraulico">
 <select id="gt_color" class="input">
-<option value="electrico">🔵 Electrico </option>
-<option value="electronico">🟡 Electronico </option>
-<option value="mecanico">🔴 Mecanico </option>
-<option value="materia">🟢 Materia </option>
-<option value="general">⚪ General </option>
-<option value="hidraulico">💜 Hidraulica </option>
-<option value="control"> 🤎 Controles </option>
-<option value="naranja">🟠 Logistica y Aduanal </option>
-<option value="morado">🖤 Otro </option>
+<option value="electrico">🔵 Azul - Eléctrico</option>
+<option value="electronico">🟡 Amarillo - Electrónico</option>
+<option value="mecanico">🔴 Rojo - Mecánico</option>
+<option value="materia">🟢 Verde - Materia Prima</option>
+<option value="general">⚪ Gris - General</option>
+<option value="hidraulico">💜 Lila - Hidráulico</option>
+<option value="control">🩵 Turquesa - Control</option>
+<option value="naranja">🟠 Naranja</option>
+<option value="morado">💜 Morado</option>
 </select>
 <input id="gt_desc" class="input" style="grid-column:1/-1" placeholder="Descripción opcional">
 </div>
@@ -118,6 +124,27 @@ select.input{cursor:pointer}
 <div id="listaGestionTipos"></div>
 </div>
 <div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionTipos()">Cerrar</button></div>
+</div></div>
+
+
+<!-- MODAL VER PROVEEDOR (solo lectura) -->
+<div id="modalView" class="modal-bg"><div class="modal modal-wide">
+<div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
+<h2 class="font-display" id="v_nombre" style="font-size:26px;margin:0;line-height:1.1"></h2>
+<span id="v_tipo"></span>
+</div>
+<div class="view-grid" style="margin-top:18px">
+<div><div class="view-label">Ciudad</div><div class="view-value" id="v_ciudad"></div></div>
+<div><div class="view-label">Contacto</div><div class="view-value" id="v_contacto"></div></div>
+<div><div class="view-label">Teléfono</div><div class="view-value" id="v_telefono"></div></div>
+<div><div class="view-label">Correo</div><div class="view-value" id="v_correo"></div></div>
+<div style="grid-column:1/-1"><div class="view-label">Ubicación / Dirección</div><div class="view-value" id="v_ubicacion"></div></div>
+<div style="grid-column:1/-1"><div class="view-label">Marcas (<span id="v_marcas_count">0</span>)</div><div id="v_marcas" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div></div>
+</div>
+<div style="display:flex;gap:12px;margin-top:22px">
+<button class="btn" style="flex:1" onclick="closeView()">Cerrar</button>
+<button class="btn btn-accent" style="flex:1" onclick="editFromView()">Modificar</button>
+</div>
 </div></div>
 
 <div id="modalDel" class="modal-bg"><div class="modal" style="max-width:400px"><h3 class="font-display">Eliminar</h3><p style="font-size:13px;color:var(--muted)" id="delMsg">Se eliminará de MongoDB.</p><div style="display:flex;gap:12px;margin-top:16px"><button class="btn" style="flex:1" onclick="closeDel()">Cancelar</button><button class="btn btn-accent" style="flex:1;background:var(--ink)" onclick="confirmDelete()">Eliminar</button></div></div></div>
@@ -179,13 +206,28 @@ function render(){
  });
  document.getElementById('grid').innerHTML=filtered.map(p=>{
   const nombre=p.nombreProveedor||p.nombre||'Sin nombre';
-  const marcasTxt = Array.isArray(p.marcas) ? p.marcas.join(', ') : '';
+  const marcasArr = Array.isArray(p.marcas) ? p.marcas : [];
+  const marcasVisibles = marcasArr.slice(0,4);
+  const marcasRestantes = marcasArr.length - 4;
+  const marcasHtml = marcasVisibles.map(m=>`<span class="marca-chip">🏷️ ${m}</span>`).join('') + (marcasRestantes>0 ? `<button class="marca-more" onclick="openView('${p._id}')">+${marcasRestantes} más</button>` : '') || '<span style="font-size:12px;color:var(--muted)">— sin marcas</span>';
   const tipoObj = tipos.find(x=>x.nombre===p.tipoProveedor);
   const colorTipo = tipoObj ? (tipoObj.color||tipoObj.nombre) : p.tipoProveedor;
-  return `<div class="card">
-   <div style="display:flex;justify-content:space-between;gap:8px"><div><div style="font-weight:700">${nombre}</div><div style="font-size:12px;color:var(--muted)">${p.ciudad||''} ${p.ubicacion||p.direccion ? '· '+(p.ubicacion||p.direccion).substring(0,35) : ''}</div></div>${badgeTipo(p.tipoProveedor||'general', colorTipo)}</div>
-   <div style="font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6">👤 ${p.contacto||'—'}<br>📞 ${p.telefono||'—'}<br>✉️ ${p.correo ? `<a href='mailto:${p.correo}' style='color:var(--accent)'>${p.correo}</a>` : '—'}<br>📍 ${p.ubicacion||p.direccion||'—'}<br>🏷️ ${marcasTxt||'—'}</div>
-   <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="flex:1;height:36px" onclick="openEdit('${p._id}')">Modificar</button><button class="btn" style="flex:1;height:36px;color:#dc2626;border-color:#fecaca" onclick="openDel('${p._id}','prov')">Eliminar</button></div>
+  const correoLink = p.correo ? `<a href='mailto:${p.correo}' style='color:var(--accent)'>${p.correo}</a>` : '—';
+  const ubicacionCorta = (p.ubicacion||p.direccion||'').length>60 ? (p.ubicacion||p.direccion).substring(0,60)+'...' : (p.ubicacion||p.direccion||'—');
+  return `<div class="card" style="display:flex;flex-direction:column">
+   <div style="display:flex;justify-content:space-between;gap:8px"><div style="flex:1"><div style="font-weight:700;font-size:15px;line-height:1.2">${nombre}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${p.ciudad||''}</div></div><div>${badgeTipo(p.tipoProveedor||'general', colorTipo)}</div></div>
+   <div style="font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.6">
+     <div>👤 ${p.contacto||'—'}</div>
+     <div>📞 ${p.telefono||'—'}</div>
+     <div>✉️ ${correoLink}</div>
+     <div style="display:flex;gap:4px"><span>📍</span><span style="flex:1">${ubicacionCorta}</span></div>
+   </div>
+   <div style="margin-top:12px;min-height:32px">${marcasHtml}</div>
+   <div style="display:flex;gap:8px;margin-top:auto;padding-top:14px">
+     <button class="btn" style="flex:1;height:36px" onclick="openView('${p._id}')">Ver</button>
+     <button class="btn" style="flex:1;height:36px" onclick="openEdit('${p._id}')">Modificar</button>
+     <button class="btn" style="flex:1;height:36px;color:#dc2626;border-color:#fecaca" onclick="openDel('${p._id}','prov')">Eliminar</button>
+   </div>
   </div>`;
  }).join('') || '<div style="padding:40px;color:var(--muted);text-align:center">Sin resultados</div>';
  document.getElementById('checkMarcas').innerHTML=marcas.map(m=>`<label style="font-size:12px;display:flex;gap:6px;align-items:center;border:1px solid var(--border);padding:4px 10px;border-radius:9999px;background:var(--surface-2)"><input type="checkbox" value="${m.nombreMarca}" class="chkMarca"> ${m.nombreMarca}</label>`).join('');
@@ -207,6 +249,25 @@ function renderGestionTipos(){
   </div>
  `).join('') || '<div style="padding:20px;color:var(--muted);text-align:center">No hay tipos</div>';
 }
+
+let viewId=null;
+function openView(id){
+  const p=proveedores.find(x=>x._id===id); if(!p) return; viewId=id;
+  document.getElementById('v_nombre').textContent=p.nombreProveedor||p.nombre||'Sin nombre';
+  const tipoObj = tipos.find(x=>x.nombre===p.tipoProveedor);
+  document.getElementById('v_tipo').innerHTML=badgeTipo(p.tipoProveedor||'general', tipoObj ? (tipoObj.color||tipoObj.nombre) : p.tipoProveedor);
+  document.getElementById('v_ciudad').textContent=p.ciudad||'—';
+  document.getElementById('v_contacto').textContent=p.contacto||'—';
+  document.getElementById('v_telefono').innerHTML=p.telefono ? `<a href="tel:${p.telefono}" style="color:var(--ink)">${p.telefono}</a>` : '—';
+  document.getElementById('v_correo').innerHTML=p.correo ? `<a href="mailto:${p.correo}" style="color:var(--accent)">${p.correo}</a>` : '—';
+  document.getElementById('v_ubicacion').innerHTML=p.ubicacion||p.direccion ? `<a href="https://maps.google.com/?q=${encodeURIComponent(p.ubicacion||p.direccion)}" target="_blank" style="color:var(--ink);text-decoration:underline">${p.ubicacion||p.direccion}</a>` : '—';
+  const marcasArr = Array.isArray(p.marcas) ? p.marcas : [];
+  document.getElementById('v_marcas_count').textContent=marcasArr.length;
+  document.getElementById('v_marcas').innerHTML=marcasArr.length ? marcasArr.map(m=>`<span class="marca-chip">${m}</span>`).join('') : '<span style="font-size:12px;color:var(--muted)">Sin marcas</span>';
+  document.getElementById('modalView').classList.add('open');
+}
+function closeView(){document.getElementById('modalView').classList.remove('open'); viewId=null;}
+function editFromView(){ if(viewId){ closeView(); openEdit(viewId);} }
 
 function openAdd(){editingId=null;document.getElementById('f_nombreProveedor').value='';document.getElementById('f_contacto').value='';document.getElementById('f_telefono').value='';document.getElementById('f_correo').value='';document.getElementById('f_ciudad').value='';document.getElementById('f_ubicacion').value='';document.querySelectorAll('.chkMarca').forEach(c=>c.checked=false);document.getElementById('modalForm').classList.add('open')}
 function openEdit(id){const p=proveedores.find(x=>x._id===id);if(!p)return;editingId=id;document.getElementById('f_nombreProveedor').value=p.nombreProveedor||p.nombre||'';document.getElementById('f_tipoProveedor').value=p.tipoProveedor||'general';document.getElementById('f_contacto').value=p.contacto||'';document.getElementById('f_telefono').value=p.telefono||'';document.getElementById('f_correo').value=p.correo||'';document.getElementById('f_ciudad').value=p.ciudad||'';document.getElementById('f_ubicacion').value=p.ubicacion||p.direccion||'';document.querySelectorAll('.chkMarca').forEach(c=>{c.checked=(p.marcas||[]).includes(c.value)});document.getElementById('modalForm').classList.add('open')}
@@ -265,5 +326,6 @@ document.getElementById('modalForm').addEventListener('click',e=>{if(e.target.id
 document.getElementById('modalGestionMarcas').addEventListener('click',e=>{if(e.target.id==='modalGestionMarcas')closeGestionMarcas()});
 document.getElementById('modalGestionTipos').addEventListener('click',e=>{if(e.target.id==='modalGestionTipos')closeGestionTipos()});
 document.getElementById('modalDel').addEventListener('click',e=>{if(e.target.id==='modalDel')closeDel()});
+document.getElementById('modalView').addEventListener('click',e=>{if(e.target.id==='modalView')closeView()});
 load();
 </script></body></html>
