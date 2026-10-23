@@ -43,7 +43,32 @@ select.input{cursor:pointer}
 .auth-input:focus{border-color:var(--ink);outline:none}
 
 
+
+#pageLock{position:fixed;inset:0;background:#0a0a0a;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+#pageLock .lock-card{width:100%;max-width:420px;background:#11110f;border:1px solid #222;color:#faf9f6;border-radius:24px;padding:32px;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.8)}
+#pageLock .lock-logo{width:64px;height:64px;border-radius:50%;background:#ff4d12;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px}
+.lock-input{width:100%;height:52px;border-radius:12px;border:2px solid #2a2a2a;background:#1a1a18;color:#fff;padding:0 16px;font-size:16px;letter-spacing:1px}
+.lock-input:focus{border-color:#ff4d12;outline:none}
+.lock-btn{width:100%;height:48px;border-radius:9999px;background:#ff4d12;color:#fff;border:none;font-weight:700;font-size:14px;cursor:pointer;margin-top:12px}
+.lock-btn:disabled{opacity:.6;cursor:not-allowed}
+
 </style></head><body>
+<!-- PANTALLA NEGRA DE ACCESO - TODA LA PÁGINA BLOQUEADA -->
+<div id="pageLock">
+<div class="lock-card">
+<div class="lock-logo">🔒</div>
+<h1 class="font-display" style="font-size:28px;margin:0">Acceso restringido</h1>
+<p style="font-size:13px;color:#8a8882;margin:8px 0 0">Base de Datos Proveedores protegida.<br>Ingresa la contraseña para continuar.</p>
+<div style="margin-top:22px;text-align:left">
+<label style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#8a8882">CONTRASEÑA</label>
+<input id="page_pwd" type="password" class="lock-input" style="margin-top:6px" placeholder="••••••••••••••••" onkeydown="if(event.key==='Enter')submitPageAuth()">
+<div id="page_auth_error" style="font-size:12px;color:#ff4d12;margin-top:10px;display:none"></div>
+<button class="lock-btn" id="btnPageAuth" onclick="submitPageAuth()">Desbloquear base de datos</button>
+<p style="font-size:10px;color:#555;margin-top:16px">Contraseña guardada de forma segura en MongoDB<br>no está visible en el código HTML</p>
+</div>
+</div>
+</div>
+
 <header class="max" style="padding:40px 24px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:end">
 <div><h1 class="font-display" style="font-size:42px;margin:0;line-height:.9">Base de Datos <span style="color:var(--muted);font-weight:300">Proveedores</span></h1>
 <p id="statusDB" style="font-size:12px;color:var(--muted);margin:6px 0 0"><span class="status-dot" style="background:#fbbf24"></span> Conectando a MongoDB...</p></div>
@@ -130,23 +155,6 @@ select.input{cursor:pointer}
 </div></div>
 
 
-
-<!-- MODAL AUTH - CONTRASEÑA PARA VER -->
-<div id="modalAuth" class="modal-bg"><div class="modal" style="max-width:420px;text-align:center">
-<div style="width:56px;height:56px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px">🔒</div>
-<h2 class="font-display" style="font-size:22px;margin:0">Acceso protegido</h2>
-<p style="font-size:13px;color:var(--muted);margin:8px 0 0">Ingresa la contraseña para ver los detalles completos del proveedor.</p>
-<div style="margin-top:18px;text-align:left">
-<label style="font-size:11px;font-weight:600">CONTRASEÑA</label>
-<input id="auth_pwd" type="password" class="auth-input" style="margin-top:6px" placeholder="••••••••••••••••" onkeydown="if(event.key==='Enter')submitAuth()">
-<div id="auth_error" style="font-size:12px;color:#dc2626;margin-top:8px;display:none"></div>
-</div>
-<div style="display:flex;gap:12px;margin-top:20px">
-<button class="btn" style="flex:1" onclick="closeAuth()">Cancelar</button>
-<button class="btn btn-accent" style="flex:1" id="btnAuth" onclick="submitAuth()">Desbloquear</button>
-</div>
-<p style="font-size:10px;color:var(--muted);margin-top:14px">La contraseña está guardada de forma segura en MongoDB, no en el HTML.</p>
-</div></div>
 
 <!-- MODAL VER PROVEEDOR (solo lectura) -->
 <div id="modalView" class="modal-bg"><div class="modal modal-wide">
@@ -272,53 +280,50 @@ function renderGestionTipos(){
 }
 
 let viewId=null;
-let pendingViewId=null;
 const AUTH_KEY='prov_auth_token';
 const AUTH_EXP='prov_auth_exp';
+const AUTH_PWD='Dagal2026DBProveeñ'; // solo referencia, no se usa para validar
 
 function isAuthenticated(){
   const exp = parseInt(sessionStorage.getItem(AUTH_EXP)||'0',10);
   return exp > Date.now() && sessionStorage.getItem(AUTH_KEY);
 }
 
-function openAuthFor(id){
-  pendingViewId=id;
-  document.getElementById('auth_pwd').value='';
-  document.getElementById('auth_error').style.display='none';
-  document.getElementById('modalAuth').classList.add('open');
-  setTimeout(()=>document.getElementById('auth_pwd').focus(),100);
-}
-function closeAuth(){document.getElementById('modalAuth').classList.remove('open'); pendingViewId=null;}
+function showPageLock(){ document.getElementById('pageLock').style.display='flex'; }
+function hidePageLock(){ document.getElementById('pageLock').style.display='none'; }
 
-async function submitAuth(){
-  const pwd=document.getElementById('auth_pwd').value;
-  if(!pwd){ document.getElementById('auth_error').textContent='Ingresa la contraseña'; document.getElementById('auth_error').style.display='block'; return; }
-  const btn=document.getElementById('btnAuth');
-  btn.textContent='Verificando...'; btn.disabled=true;
+async function submitPageAuth(){
+  const pwd=document.getElementById('page_pwd').value;
+  const errEl=document.getElementById('page_auth_error');
+  if(!pwd){ errEl.textContent='Ingresa la contraseña'; errEl.style.display='block'; return; }
+  const btn=document.getElementById('btnPageAuth');
+  btn.textContent='Verificando...'; btn.disabled=true; errEl.style.display='none';
   try{
     const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
     const data=await r.json();
     if(!r.ok || !data.ok) throw new Error(data.error||'Contraseña incorrecta');
-    // Guardar auth por 2 horas
     sessionStorage.setItem(AUTH_KEY, data.token);
-    sessionStorage.setItem(AUTH_EXP, (Date.now()+2*60*60*1000).toString());
-    closeAuth();
-    toast('Acceso concedido');
-    if(pendingViewId){ const id=pendingViewId; pendingViewId=null; actuallyOpenView(id); }
+    sessionStorage.setItem(AUTH_EXP, (Date.now()+8*60*60*1000).toString()); // 8 horas
+    hidePageLock();
+    toast('Acceso concedido - Cargando base de datos...');
+    load(); // ahora sí carga los datos
   }catch(e){
-    document.getElementById('auth_error').textContent=e.message;
-    document.getElementById('auth_error').style.display='block';
-  }finally{ btn.textContent='Desbloquear'; btn.disabled=false; }
+    errEl.textContent=e.message;
+    errEl.style.display='block';
+  }finally{ btn.textContent='Desbloquear base de datos'; btn.disabled=false; }
 }
 
-function openView(id){
-  if(!isAuthenticated()){
-    openAuthFor(id);
-    return;
+function checkPageAuth(){
+  if(isAuthenticated()){
+    hidePageLock();
+    load();
+  } else {
+    showPageLock();
+    setTimeout(()=>{ const inp=document.getElementById('page_pwd'); if(inp) inp.focus(); }, 200);
   }
-  actuallyOpenView(id);
 }
 
+function openView(id){ actuallyOpenView(id); }
 function actuallyOpenView(id){
   const p=proveedores.find(x=>x._id===id); if(!p) return; viewId=id;
   document.getElementById('v_nombre').textContent=p.nombreProveedor||p.nombre||'Sin nombre';
@@ -395,5 +400,5 @@ document.getElementById('modalGestionMarcas').addEventListener('click',e=>{if(e.
 document.getElementById('modalGestionTipos').addEventListener('click',e=>{if(e.target.id==='modalGestionTipos')closeGestionTipos()});
 document.getElementById('modalDel').addEventListener('click',e=>{if(e.target.id==='modalDel')closeDel()});
 document.getElementById('modalView').addEventListener('click',e=>{if(e.target.id==='modalView')closeView()});
-load();
+checkPageAuth();
 </script></body></html>
