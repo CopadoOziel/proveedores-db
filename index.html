@@ -39,6 +39,9 @@ select.input{cursor:pointer}
 .view-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .view-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .view-value{font-size:14px;line-height:1.4}
+.auth-input{width:100%;height:48px;border-radius:12px;border:2px solid var(--border);padding:0 16px;font-size:16px;letter-spacing:1px}
+.auth-input:focus{border-color:var(--ink);outline:none}
+
 
 </style></head><body>
 <header class="max" style="padding:40px 24px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:end">
@@ -126,6 +129,24 @@ select.input{cursor:pointer}
 <div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionTipos()">Cerrar</button></div>
 </div></div>
 
+
+
+<!-- MODAL AUTH - CONTRASEÑA PARA VER -->
+<div id="modalAuth" class="modal-bg"><div class="modal" style="max-width:420px;text-align:center">
+<div style="width:56px;height:56px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px">🔒</div>
+<h2 class="font-display" style="font-size:22px;margin:0">Acceso protegido</h2>
+<p style="font-size:13px;color:var(--muted);margin:8px 0 0">Ingresa la contraseña para ver los detalles completos del proveedor.</p>
+<div style="margin-top:18px;text-align:left">
+<label style="font-size:11px;font-weight:600">CONTRASEÑA</label>
+<input id="auth_pwd" type="password" class="auth-input" style="margin-top:6px" placeholder="••••••••••••••••" onkeydown="if(event.key==='Enter')submitAuth()">
+<div id="auth_error" style="font-size:12px;color:#dc2626;margin-top:8px;display:none"></div>
+</div>
+<div style="display:flex;gap:12px;margin-top:20px">
+<button class="btn" style="flex:1" onclick="closeAuth()">Cancelar</button>
+<button class="btn btn-accent" style="flex:1" id="btnAuth" onclick="submitAuth()">Desbloquear</button>
+</div>
+<p style="font-size:10px;color:var(--muted);margin-top:14px">La contraseña está guardada de forma segura en MongoDB, no en el HTML.</p>
+</div></div>
 
 <!-- MODAL VER PROVEEDOR (solo lectura) -->
 <div id="modalView" class="modal-bg"><div class="modal modal-wide">
@@ -251,7 +272,54 @@ function renderGestionTipos(){
 }
 
 let viewId=null;
+let pendingViewId=null;
+const AUTH_KEY='prov_auth_token';
+const AUTH_EXP='prov_auth_exp';
+
+function isAuthenticated(){
+  const exp = parseInt(sessionStorage.getItem(AUTH_EXP)||'0',10);
+  return exp > Date.now() && sessionStorage.getItem(AUTH_KEY);
+}
+
+function openAuthFor(id){
+  pendingViewId=id;
+  document.getElementById('auth_pwd').value='';
+  document.getElementById('auth_error').style.display='none';
+  document.getElementById('modalAuth').classList.add('open');
+  setTimeout(()=>document.getElementById('auth_pwd').focus(),100);
+}
+function closeAuth(){document.getElementById('modalAuth').classList.remove('open'); pendingViewId=null;}
+
+async function submitAuth(){
+  const pwd=document.getElementById('auth_pwd').value;
+  if(!pwd){ document.getElementById('auth_error').textContent='Ingresa la contraseña'; document.getElementById('auth_error').style.display='block'; return; }
+  const btn=document.getElementById('btnAuth');
+  btn.textContent='Verificando...'; btn.disabled=true;
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+    const data=await r.json();
+    if(!r.ok || !data.ok) throw new Error(data.error||'Contraseña incorrecta');
+    // Guardar auth por 2 horas
+    sessionStorage.setItem(AUTH_KEY, data.token);
+    sessionStorage.setItem(AUTH_EXP, (Date.now()+2*60*60*1000).toString());
+    closeAuth();
+    toast('Acceso concedido');
+    if(pendingViewId){ const id=pendingViewId; pendingViewId=null; actuallyOpenView(id); }
+  }catch(e){
+    document.getElementById('auth_error').textContent=e.message;
+    document.getElementById('auth_error').style.display='block';
+  }finally{ btn.textContent='Desbloquear'; btn.disabled=false; }
+}
+
 function openView(id){
+  if(!isAuthenticated()){
+    openAuthFor(id);
+    return;
+  }
+  actuallyOpenView(id);
+}
+
+function actuallyOpenView(id){
   const p=proveedores.find(x=>x._id===id); if(!p) return; viewId=id;
   document.getElementById('v_nombre').textContent=p.nombreProveedor||p.nombre||'Sin nombre';
   const tipoObj = tipos.find(x=>x.nombre===p.tipoProveedor);
