@@ -40,6 +40,13 @@ const TipoSchema = new mongoose.Schema({
   color: { type: String, default: 'general' }
 }, { collection: 'tiposProveedor', timestamps: true });
 
+const AppConfigSchema = new mongoose.Schema({
+  clave: { type: String, required: true, unique: true },
+  hash: { type: String, required: true },
+  salt: { type: String, required: true }
+}, { collection: 'appConfig', timestamps: true });
+
 export const Marca = mongoose.models.Marca || mongoose.model('Marca', marcaSchema);
 export const Proveedor = mongoose.models.Proveedor || mongoose.model('Proveedor', ProveedorSchema);
 export const TipoProveedor = mongoose.models.TipoProveedor || mongoose.model('TipoProveedor', TipoSchema);
+export const AppConfig = mongoose.models.AppConfig || mongoose.model('AppConfig', AppConfigSchema);
