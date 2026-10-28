@@ -7,7 +7,7 @@
 *{box-sizing:border-box;font-family:Instrument Sans,sans-serif}body{margin:0;background:var(--bg);color:var(--text)}
 .font-display{font-family:Newsreader,serif}
 .max{max-width:1280px;margin:0 auto;padding:0 24px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:0 2px 20px rgba(0,0,0,.04)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:0 2px 20px rgba(0,0,0,.04);display:flex;flex-direction:column}
 .btn{border-radius:9999px;height:44px;padding:0 20px;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--surface)}
 .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-accent:hover{background:var(--accent-h)}
 .btn-dark{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -39,31 +39,29 @@ select.input{cursor:pointer}
 .view-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .view-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .view-value{font-size:14px;line-height:1.4}
-.auth-input{width:100%;height:48px;border-radius:12px;border:2px solid var(--border);padding:0 16px;font-size:16px;letter-spacing:1px}
-.auth-input:focus{border-color:var(--ink);outline:none}
-
-
-
+#checkMarcas{max-height:200px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:8px;border:1px solid var(--border);border-radius:12px;padding:10px;background:#fff}
+#checkMarcas::-webkit-scrollbar{width:6px}
+#checkMarcas::-webkit-scrollbar-thumb{background:#d4d0c6;border-radius:9999px}
+#checkMarcas .marca-item{font-size:12px;display:flex;gap:6px;align-items:center;border:1px solid var(--border);padding:5px 10px;border-radius:9999px;background:var(--surface-2);cursor:pointer;user-select:none}
+#checkMarcas .marca-item.selected{background:var(--ink);color:#fff;border-color:var(--ink)}
 #pageLock{position:fixed;inset:0;background:#0a0a0a;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
 #pageLock .lock-card{width:100%;max-width:420px;background:#11110f;border:1px solid #222;color:#faf9f6;border-radius:24px;padding:32px;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.8)}
-#pageLock .lock-logo{width:64px;height:64px;border-radius:50%;background:#ff4d12;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px}
-.lock-input{width:100%;height:52px;border-radius:12px;border:2px solid #2a2a2a;background:#1a1a18;color:#fff;padding:0 16px;font-size:16px;letter-spacing:1px}
+.lock-input{width:100%;height:52px;border-radius:12px;border:2px solid #2a2a2a;background:#1a1a18;color:#fff;padding:0 16px;font-size:16px}
 .lock-input:focus{border-color:#ff4d12;outline:none}
 .lock-btn{width:100%;height:48px;border-radius:9999px;background:#ff4d12;color:#fff;border:none;font-weight:700;font-size:14px;cursor:pointer;margin-top:12px}
-.lock-btn:disabled{opacity:.6;cursor:not-allowed}
-
 </style></head><body>
-<!-- PANTALLA NEGRA DE ACCESO - TODA LA PÁGINA BLOQUEADA -->
+<!-- PANTALLA NEGRA TODA LA PAGINA -->
 <div id="pageLock">
 <div class="lock-card">
-<div class="lock-logo">🔒</div>
+<div style="width:64px;height:64px;border-radius:50%;background:#ff4d12;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px">🔒</div>
 <h1 class="font-display" style="font-size:28px;margin:0">Acceso restringido</h1>
-<p style="font-size:13px;color:#8a8882;margin:8px 0 0">Base de Datos Proveedores.<br>Ingresa la contraseña para continuar.</p>
+<p style="font-size:13px;color:#8a8882;margin:8px 0 0">Base de Datos Proveedores protegida.<br>Ingresa la contraseña para continuar.</p>
 <div style="margin-top:22px;text-align:left">
-<label style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#8a8882">CONTRASEÑA</label>
+<label style="font-size:10px;font-weight:700;color:#8a8882">CONTRASEÑA</label>
 <input id="page_pwd" type="password" class="lock-input" style="margin-top:6px" placeholder="••••••••••••••••" onkeydown="if(event.key==='Enter')submitPageAuth()">
 <div id="page_auth_error" style="font-size:12px;color:#ff4d12;margin-top:10px;display:none"></div>
 <button class="lock-btn" id="btnPageAuth" onclick="submitPageAuth()">Desbloquear base de datos</button>
+<p style="font-size:10px;color:#555;margin-top:16px">Contraseña guardada en MongoDB, no en HTML</p>
 </div>
 </div>
 </div>
@@ -81,6 +79,7 @@ select.input{cursor:pointer}
 <button class="btn btn-accent" onclick="openAdd()">+ Agregar proveedor</button>
 <button class="btn btn-dark" onclick="openGestionMarcas()">⚙️ Gestionar marcas</button>
 <button class="btn" style="background:#fff" onclick="openGestionTipos()">⚙️ Gestionar tipos</button>
+<button class="btn" style="background:#fff" onclick="logout()">🔒 Salir</button>
 </div>
 </div>
 
@@ -99,61 +98,19 @@ select.input{cursor:pointer}
 <div><label style="font-size:11px;font-weight:600">contacto</label><input id="f_contacto" class="input" style="margin-top:4px" placeholder="Nombre del contacto"></div>
 <div><label style="font-size:11px;font-weight:600">telefono</label><input id="f_telefono" class="input" style="margin-top:4px" placeholder="664..."></div>
 <div><label style="font-size:11px;font-weight:600">correo *</label><input id="f_correo" class="input" style="margin-top:4px" placeholder="ventas@proveedor.com" type="email"></div>
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">ubicación / dirección</label><input id="f_ubicacion" class="input" style="margin-top:4px" placeholder="Blvd. Industrial #123, Tijuana, BC - o link de Google Maps"></div>
-<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">marcas (selecciona de marcas existentes)</label><div id="checkMarcas" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
+<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">ubicación / dirección</label><input id="f_ubicacion" class="input" style="margin-top:4px" placeholder="Blvd. Industrial #123, Tijuana, BC"></div>
+<div style="grid-column:1/-1">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<label style="font-size:11px;font-weight:600">marcas (selecciona de marcas existentes) - scroll</label>
+<span id="marcasCountSel" class="badge" style="font-size:10px">0 seleccionadas</span>
 </div>
-<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeModal()">Cancelar</button><button class="btn btn-accent" style="flex:1" onclick="saveProveedor()">Guardar</button></div>
+<input id="searchMarcas" class="input" style="height:36px;margin-bottom:8px" placeholder="🔍 Buscar marca... ej: Siemens, 3M, ABB" oninput="filterMarcasCheck()">
+<div id="checkMarcas"></div>
+<div style="font-size:10px;color:var(--muted);margin-top:6px">Scroll para ver todas • Usa el buscador para filtrar • Solo se muestran 4 en la tarjeta</div>
+</div>
+</div>
+<div style="display:flex;gap:12px;margin-top:18px;position:sticky;bottom:0;background:#fff;padding-top:12px"><button class="btn" style="flex:1" onclick="closeModal()">Cancelar</button><button class="btn btn-accent" style="flex:1" onclick="saveProveedor()">Guardar</button></div>
 </div></div>
-
-<!-- MODAL GESTION MARCAS -->
-<div id="modalGestionMarcas" class="modal-bg"><div class="modal modal-wide">
-<h2 class="font-display" style="font-size:22px;margin:0">Gestionar Marcas</h2>
-<p style="font-size:12px;color:var(--muted)">Aquí puedes agregar, modificar y eliminar marcas. Todo se guarda en MongoDB colección marcas.</p>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0">
-<input id="gm_nombre" class="input" placeholder="Nombre marca *">
-<input id="gm_categoria" class="input" placeholder="Categoría">
-<input id="gm_pais" class="input" placeholder="País">
-</div>
-<div style="display:flex;gap:10px;margin-bottom:16px">
-<button class="btn btn-accent" style="flex:1" onclick="saveGestionMarca()">+ Guardar marca</button>
-<button class="btn" style="flex:1" id="btnCancelEditMarca" onclick="cancelEditMarca()" style="display:none">Cancelar edición</button>
-</div>
-<div style="max-height:40vh;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px">
-<div id="listaGestionMarcas"></div>
-</div>
-<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionMarcas()">Cerrar</button></div>
-</div></div>
-
-<!-- MODAL GESTION TIPOS -->
-<div id="modalGestionTipos" class="modal-bg"><div class="modal modal-wide">
-<h2 class="font-display" style="font-size:22px;margin:0">Gestionar Tipos de Proveedor</h2>
-<p style="font-size:12px;color:var(--muted)">Agrega, modifica color y elimina tipos. Se guarda en tiposProveedor.</p>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
-<input id="gt_nombre" class="input" placeholder="Nombre tipo * ej: hidraulico">
-<select id="gt_color" class="input">
-<option value="electrico">🔵 Azul - Eléctrico</option>
-<option value="electronico">🟡 Amarillo - Electrónico</option>
-<option value="mecanico">🔴 Rojo - Mecánico</option>
-<option value="materia">🟢 Verde - Materia Prima</option>
-<option value="general">⚪ Gris - General</option>
-<option value="hidraulico">💜 Lila - Hidráulico</option>
-<option value="control">🩵 Turquesa - Control</option>
-<option value="naranja">🟠 Naranja</option>
-<option value="morado">💜 Morado</option>
-</select>
-<input id="gt_desc" class="input" style="grid-column:1/-1" placeholder="Descripción opcional">
-</div>
-<div style="display:flex;gap:10px;margin-bottom:16px">
-<button class="btn btn-accent" style="flex:1" onclick="saveGestionTipo()">+ Guardar tipo</button>
-<button class="btn" style="flex:1" id="btnCancelEditTipo" onclick="cancelEditTipo()" style="display:none">Cancelar edición</button>
-</div>
-<div style="max-height:40vh;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px">
-<div id="listaGestionTipos"></div>
-</div>
-<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionTipos()">Cerrar</button></div>
-</div></div>
-
-
 
 <!-- MODAL VER PROVEEDOR (solo lectura) -->
 <div id="modalView" class="modal-bg"><div class="modal modal-wide">
@@ -167,12 +124,58 @@ select.input{cursor:pointer}
 <div><div class="view-label">Teléfono</div><div class="view-value" id="v_telefono"></div></div>
 <div><div class="view-label">Correo</div><div class="view-value" id="v_correo"></div></div>
 <div style="grid-column:1/-1"><div class="view-label">Ubicación / Dirección</div><div class="view-value" id="v_ubicacion"></div></div>
-<div style="grid-column:1/-1"><div class="view-label">Marcas (<span id="v_marcas_count">0</span>)</div><div id="v_marcas" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div></div>
+<div style="grid-column:1/-1"><div class="view-label">Marcas (<span id="v_marcas_count">0</span>)</div><div id="v_marcas" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
 </div>
 <div style="display:flex;gap:12px;margin-top:22px">
 <button class="btn" style="flex:1" onclick="closeView()">Cerrar</button>
 <button class="btn btn-accent" style="flex:1" onclick="editFromView()">Modificar</button>
 </div>
+</div></div>
+
+<!-- MODAL GESTION MARCAS -->
+<div id="modalGestionMarcas" class="modal-bg"><div class="modal modal-wide">
+<h2 class="font-display" style="font-size:20px;margin:0">Gestionar marcas</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px">
+<input id="gm_nombre" class="input" placeholder="Nombre marca *">
+<input id="gm_categoria" class="input" placeholder="Categoría">
+<input id="gm_pais" class="input" placeholder="País">
+</div>
+<div style="display:flex;gap:10px;margin-bottom:16px;margin-top:10px">
+<button class="btn btn-accent" style="flex:1" onclick="saveGestionMarca()">+ Guardar marca</button>
+<button class="btn" style="flex:1" id="btnCancelEditMarca" onclick="cancelEditMarca()" style="display:none">Cancelar edición</button>
+</div>
+<div style="max-height:40vh;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px">
+<div id="listaGestionMarcas"></div>
+</div>
+<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionMarcas()">Cerrar</button></div>
+</div></div>
+
+<!-- MODAL GESTION TIPOS -->
+<div id="modalGestionTipos" class="modal-bg"><div class="modal modal-wide">
+<h2 class="font-display" style="font-size:20px;margin:0">Gestionar tipos</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+<select id="gt_color" class="input">
+<option value="electrico">🔵 Azul - Eléctrico</option>
+<option value="electronico">🟡 Amarillo - Electrónico</option>
+<option value="mecanico">🔴 Rojo - Mecánico</option>
+<option value="materia">🟢 Verde - Materia Prima</option>
+<option value="general">⚪ Gris - General</option>
+<option value="hidraulico">💜 Lila - Hidráulico</option>
+<option value="control">🩵 Turquesa - Control</option>
+<option value="naranja">🟠 Naranja</option>
+<option value="morado">💜 Morado</option>
+</select>
+<input id="gt_nombre" class="input" placeholder="Nombre tipo * (ej: neumatico)">
+<input id="gt_desc" class="input" style="grid-column:1/-1" placeholder="Descripción opcional">
+</div>
+<div style="display:flex;gap:10px;margin-bottom:16px;margin-top:10px">
+<button class="btn btn-accent" style="flex:1" onclick="saveGestionTipo()">+ Guardar tipo</button>
+<button class="btn" style="flex:1" id="btnCancelEditTipo" onclick="cancelEditTipo()" style="display:none">Cancelar edición</button>
+</div>
+<div style="max-height:40vh;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px">
+<div id="listaGestionTipos"></div>
+</div>
+<div style="display:flex;gap:12px;margin-top:18px"><button class="btn" style="flex:1" onclick="closeGestionTipos()">Cerrar</button></div>
 </div></div>
 
 <div id="modalDel" class="modal-bg"><div class="modal" style="max-width:400px"><h3 class="font-display">Eliminar</h3><p style="font-size:13px;color:var(--muted)" id="delMsg">Se eliminará de MongoDB.</p><div style="display:flex;gap:12px;margin-top:16px"><button class="btn" style="flex:1" onclick="closeDel()">Cancelar</button><button class="btn btn-accent" style="flex:1;background:var(--ink)" onclick="confirmDelete()">Eliminar</button></div></div></div>
@@ -181,6 +184,34 @@ select.input{cursor:pointer}
 <script>
 let proveedores=[], marcas=[], tipos=[], editingId=null, deleteId=null, deleteType=null;
 let editMarcaId=null, editTipoId=null;
+let viewId=null;
+const AUTH_KEY='prov_auth_token';
+const AUTH_EXP='prov_auth_exp';
+
+function isAuthenticated(){ const exp = parseInt(sessionStorage.getItem(AUTH_EXP)||'0',10); return exp > Date.now() && sessionStorage.getItem(AUTH_KEY); }
+function showPageLock(){ document.getElementById('pageLock').style.display='flex'; }
+function hidePageLock(){ document.getElementById('pageLock').style.display='none'; }
+
+async function submitPageAuth(){
+  const pwd=document.getElementById('page_pwd').value;
+  const errEl=document.getElementById('page_auth_error');
+  if(!pwd){ errEl.textContent='Ingresa la contraseña'; errEl.style.display='block'; return; }
+  const btn=document.getElementById('btnPageAuth');
+  btn.textContent='Verificando...'; btn.disabled=true; errEl.style.display='none';
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+    const data=await r.json();
+    if(!r.ok || !data.ok) throw new Error(data.error||'Contraseña incorrecta');
+    sessionStorage.setItem(AUTH_KEY, data.token);
+    sessionStorage.setItem(AUTH_EXP, (Date.now()+8*60*60*1000).toString());
+    hidePageLock();
+    toast('Acceso concedido');
+    load();
+  }catch(e){ errEl.textContent=e.message; errEl.style.display='block'; }
+  finally{ btn.textContent='Desbloquear base de datos'; btn.disabled=false; }
+}
+function checkPageAuth(){ if(isAuthenticated()){ hidePageLock(); load(); } else { showPageLock(); setTimeout(()=>{ const i=document.getElementById('page_pwd'); if(i) i.focus(); },200); } }
+function logout(){ sessionStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_EXP); showPageLock(); document.getElementById('page_pwd').value=''; }
 
 async function api(path, opts={}){ const r=await fetch(path, {...opts, headers:{'Content-Type':'application/json', ...(opts.headers||{})}}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
@@ -242,7 +273,7 @@ function render(){
   const colorTipo = tipoObj ? (tipoObj.color||tipoObj.nombre) : p.tipoProveedor;
   const correoLink = p.correo ? `<a href='mailto:${p.correo}' style='color:var(--accent)'>${p.correo}</a>` : '—';
   const ubicacionCorta = (p.ubicacion||p.direccion||'').length>60 ? (p.ubicacion||p.direccion).substring(0,60)+'...' : (p.ubicacion||p.direccion||'—');
-  return `<div class="card" style="display:flex;flex-direction:column">
+  return `<div class="card">
    <div style="display:flex;justify-content:space-between;gap:8px"><div style="flex:1"><div style="font-weight:700;font-size:15px;line-height:1.2">${nombre}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${p.ciudad||''}</div></div><div>${badgeTipo(p.tipoProveedor||'general', colorTipo)}</div></div>
    <div style="font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.6">
      <div>👤 ${p.contacto||'—'}</div>
@@ -258,7 +289,37 @@ function render(){
    </div>
   </div>`;
  }).join('') || '<div style="padding:40px;color:var(--muted);text-align:center">Sin resultados</div>';
- document.getElementById('checkMarcas').innerHTML=marcas.map(m=>`<label style="font-size:12px;display:flex;gap:6px;align-items:center;border:1px solid var(--border);padding:4px 10px;border-radius:9999px;background:var(--surface-2)"><input type="checkbox" value="${m.nombreMarca}" class="chkMarca"> ${m.nombreMarca}</label>`).join('');
+ renderMarcasCheck();
+}
+function renderMarcasCheck(filter=''){
+  const container=document.getElementById('checkMarcas');
+  if(!container) return;
+  const q=filter.toLowerCase().trim();
+  const filtered = q ? marcas.filter(m=>m.nombreMarca.toLowerCase().includes(q)) : marcas;
+  const selected = new Set([...document.querySelectorAll('.chkMarca:checked')].map(c=>c.value));
+  // mantener seleccionados aunque se filtre
+  const marcasToShow = q ? filtered : marcas;
+  container.innerHTML=marcasToShow.map(m=>{
+    const isSel = selected.has(m.nombreMarca);
+    return `<label class="marca-item ${isSel?'selected':''}"><input type="checkbox" value="${m.nombreMarca}" class="chkMarca" ${isSel?'checked':''} style="display:none" onchange="updateMarcasSel()"> ${m.nombreMarca}</label>`;
+  }).join('') || '<div style="padding:10px;color:var(--muted);font-size:12px">Sin marcas que coincidan</div>';
+  // re-bind click en label
+  container.querySelectorAll('.marca-item').forEach(label=>{
+    label.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const chk=label.querySelector('input');
+      chk.checked=!chk.checked;
+      label.classList.toggle('selected', chk.checked);
+      updateMarcasSel();
+    });
+  });
+  updateMarcasSel();
+}
+function filterMarcasCheck(){ const q=document.getElementById('searchMarcas').value; renderMarcasCheck(q); }
+function updateMarcasSel(){
+  const count=document.querySelectorAll('.chkMarca:checked').length;
+  const el=document.getElementById('marcasCountSel');
+  if(el) el.textContent=count+' seleccionadas';
 }
 
 function renderGestionMarcas(){
@@ -278,52 +339,7 @@ function renderGestionTipos(){
  `).join('') || '<div style="padding:20px;color:var(--muted);text-align:center">No hay tipos</div>';
 }
 
-let viewId=null;
-const AUTH_KEY='prov_auth_token';
-const AUTH_EXP='prov_auth_exp';
-const AUTH_PWD='Dagal2026DBProveeñ'; // solo referencia, no se usa para validar
-
-function isAuthenticated(){
-  const exp = parseInt(sessionStorage.getItem(AUTH_EXP)||'0',10);
-  return exp > Date.now() && sessionStorage.getItem(AUTH_KEY);
-}
-
-function showPageLock(){ document.getElementById('pageLock').style.display='flex'; }
-function hidePageLock(){ document.getElementById('pageLock').style.display='none'; }
-
-async function submitPageAuth(){
-  const pwd=document.getElementById('page_pwd').value;
-  const errEl=document.getElementById('page_auth_error');
-  if(!pwd){ errEl.textContent='Ingresa la contraseña'; errEl.style.display='block'; return; }
-  const btn=document.getElementById('btnPageAuth');
-  btn.textContent='Verificando...'; btn.disabled=true; errEl.style.display='none';
-  try{
-    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
-    const data=await r.json();
-    if(!r.ok || !data.ok) throw new Error(data.error||'Contraseña incorrecta');
-    sessionStorage.setItem(AUTH_KEY, data.token);
-    sessionStorage.setItem(AUTH_EXP, (Date.now()+8*60*60*1000).toString()); // 8 horas
-    hidePageLock();
-    toast('Acceso concedido - Cargando base de datos...');
-    load(); // ahora sí carga los datos
-  }catch(e){
-    errEl.textContent=e.message;
-    errEl.style.display='block';
-  }finally{ btn.textContent='Desbloquear base de datos'; btn.disabled=false; }
-}
-
-function checkPageAuth(){
-  if(isAuthenticated()){
-    hidePageLock();
-    load();
-  } else {
-    showPageLock();
-    setTimeout(()=>{ const inp=document.getElementById('page_pwd'); if(inp) inp.focus(); }, 200);
-  }
-}
-
-function openView(id){ actuallyOpenView(id); }
-function actuallyOpenView(id){
+function openView(id){
   const p=proveedores.find(x=>x._id===id); if(!p) return; viewId=id;
   document.getElementById('v_nombre').textContent=p.nombreProveedor||p.nombre||'Sin nombre';
   const tipoObj = tipos.find(x=>x.nombre===p.tipoProveedor);
@@ -341,8 +357,8 @@ function actuallyOpenView(id){
 function closeView(){document.getElementById('modalView').classList.remove('open'); viewId=null;}
 function editFromView(){ if(viewId){ closeView(); openEdit(viewId);} }
 
-function openAdd(){editingId=null;document.getElementById('f_nombreProveedor').value='';document.getElementById('f_contacto').value='';document.getElementById('f_telefono').value='';document.getElementById('f_correo').value='';document.getElementById('f_ciudad').value='';document.getElementById('f_ubicacion').value='';document.querySelectorAll('.chkMarca').forEach(c=>c.checked=false);document.getElementById('modalForm').classList.add('open')}
-function openEdit(id){const p=proveedores.find(x=>x._id===id);if(!p)return;editingId=id;document.getElementById('f_nombreProveedor').value=p.nombreProveedor||p.nombre||'';document.getElementById('f_tipoProveedor').value=p.tipoProveedor||'general';document.getElementById('f_contacto').value=p.contacto||'';document.getElementById('f_telefono').value=p.telefono||'';document.getElementById('f_correo').value=p.correo||'';document.getElementById('f_ciudad').value=p.ciudad||'';document.getElementById('f_ubicacion').value=p.ubicacion||p.direccion||'';document.querySelectorAll('.chkMarca').forEach(c=>{c.checked=(p.marcas||[]).includes(c.value)});document.getElementById('modalForm').classList.add('open')}
+function openAdd(){editingId=null;document.getElementById('f_nombreProveedor').value='';document.getElementById('f_contacto').value='';document.getElementById('f_telefono').value='';document.getElementById('f_correo').value='';document.getElementById('f_ciudad').value='';document.getElementById('f_ubicacion').value='';document.getElementById('searchMarcas').value='';renderMarcasCheck('');document.getElementById('modalForm').classList.add('open')}
+function openEdit(id){const p=proveedores.find(x=>x._id===id);if(!p)return;editingId=id;document.getElementById('f_nombreProveedor').value=p.nombreProveedor||p.nombre||'';document.getElementById('f_tipoProveedor').value=p.tipoProveedor||'general';document.getElementById('f_contacto').value=p.contacto||'';document.getElementById('f_telefono').value=p.telefono||'';document.getElementById('f_correo').value=p.correo||'';document.getElementById('f_ciudad').value=p.ciudad||'';document.getElementById('f_ubicacion').value=p.ubicacion||p.direccion||'';document.getElementById('searchMarcas').value='';renderMarcasCheck(''); setTimeout(()=>{ document.querySelectorAll('.chkMarca').forEach(c=>{ const isSel=(p.marcas||[]).includes(c.value); c.checked=isSel; const label=c.closest('.marca-item'); if(label) label.classList.toggle('selected', isSel); }); updateMarcasSel(); },50); document.getElementById('modalForm').classList.add('open')}
 function closeModal(){document.getElementById('modalForm').classList.remove('open')}
 function openDel(id,type){deleteId=id;deleteType=type;document.getElementById('delMsg').textContent=type==='marca'?'¿Eliminar marca?':type==='tipo'?'¿Eliminar tipo?':'¿Eliminar proveedor? Se eliminará de MongoDB.';document.getElementById('modalDel').classList.add('open')}
 function closeDel(){document.getElementById('modalDel').classList.remove('open');deleteId=null;deleteType=null}
