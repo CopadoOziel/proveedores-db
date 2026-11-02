@@ -10,7 +10,7 @@ export default async function handler(req, res){
   }
   if (req.method === 'POST'){
     try{
-      const { nombreProveedor, nombre, tipoProveedor, marcas, contacto, telefono, correo, ciudad, ubicacion, direccion, estatus } = req.body;
+      const { nombreProveedor, nombre, tipoProveedor, marcas, contacto, telefono, correo, ciudad, ubicacion, direccion, estatus, tiempoCredito, montoCredito, montoEnvio, incoterm } = req.body;
       const nombreFinal = (nombreProveedor || nombre || '').trim();
       if(!nombreFinal) return res.status(400).json({ error: 'nombreProveedor requerido' });
       let tipoFinal = (tipoProveedor || 'general').toLowerCase().trim();
@@ -25,6 +25,10 @@ export default async function handler(req, res){
         ciudad: (ciudad||'').trim(),
         ubicacion: (ubicacion||direccion||'').trim(),
         direccion: (direccion||ubicacion||'').trim(),
+        tiempoCredito: (tiempoCredito||'').trim(),
+        montoCredito: (montoCredito||'').trim(),
+        montoEnvio: (montoEnvio||'').trim(),
+        incoterm: (incoterm||'').trim(),
         estatus: estatus || 'Activo'
       });
       return res.status(201).json(nuevo);

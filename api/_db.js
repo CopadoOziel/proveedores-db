@@ -30,6 +30,10 @@ const ProveedorSchema = new mongoose.Schema({
   ciudad: String,
   ubicacion: String,
   direccion: String,
+  tiempoCredito: String,
+  montoCredito: String,
+  montoEnvio: String,
+  incoterm: String,
   estatus: { type: String, default: 'Activo' },
   activo: { type: Boolean, default: true }
 }, { collection: 'proveedores', timestamps: true });
