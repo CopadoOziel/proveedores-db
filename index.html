@@ -103,6 +103,12 @@ select.input{cursor:pointer}
 <div><label style="font-size:11px;font-weight:600">telefono</label><input id="f_telefono" class="input" style="margin-top:4px" placeholder="664..."></div>
 <div><label style="font-size:11px;font-weight:600">correo *</label><input id="f_correo" class="input" style="margin-top:4px" placeholder="ventas@proveedor.com" type="email"></div>
 <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600">ubicación / dirección</label><input id="f_ubicacion" class="input" style="margin-top:4px" placeholder="Blvd. Industrial #123, Tijuana, BC"></div>
+<div style="grid-column:1/-1"><div style="background:#f2f0eb;border:1px solid var(--border);border-radius:12px;padding:12px"><div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">💳 Datos de Crédito y Envío</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div><label style="font-size:11px;font-weight:600">tiempo de crédito</label><select id="f_tiempoCredito" class="input" style="margin-top:4px"><option value="">Sin crédito</option><option value="Contado">Contado</option><option value="7 días">7 días</option><option value="15 días">15 días</option><option value="30 días">30 días</option><option value="45 días">45 días</option><option value="60 días">60 días</option><option value="90 días">90 días</option></select></div>
+<div><label style="font-size:11px;font-weight:600">monto de crédito</label><input id="f_montoCredito" class="input" style="margin-top:4px" placeholder="$ 0.00 MXN / USD"></div>
+<div><label style="font-size:11px;font-weight:600">monto de envío</label><input id="f_montoEnvio" class="input" style="margin-top:4px" placeholder="$ 0.00"></div>
+<div><label style="font-size:11px;font-weight:600">Incoterm</label><select id="f_incoterm" class="input" style="margin-top:4px"><option value="">Seleccionar</option><option value="EXW">EXW - En fábrica</option><option value="FCA">FCA - Franco transportista</option><option value="FOB">FOB - Franco a bordo</option><option value="CIF">CIF - Costo, seguro y flete</option><option value="CFR">CFR - Costo y flete</option><option value="DAP">DAP - Entregado en lugar</option><option value="DDP">DDP - Entregado con derechos</option><option value="CPT">CPT - Transporte pagado</option><option value="CIP">CIP - Transporte y seguro</option></select></div>
+</div></div></div>
 <div style="grid-column:1/-1">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
 <label style="font-size:11px;font-weight:600">marcas (selecciona de marcas existentes) - scroll</label>
@@ -128,6 +134,12 @@ select.input{cursor:pointer}
 <div><div class="view-label">Teléfono</div><div class="view-value" id="v_telefono"></div></div>
 <div><div class="view-label">Correo</div><div class="view-value" id="v_correo"></div></div>
 <div style="grid-column:1/-1"><div class="view-label">Ubicación / Dirección</div><div class="view-value" id="v_ubicacion"></div></div>
+<div style="grid-column:1/-1"><div style="background:#f2f0eb;border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:4px"><div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;color:var(--muted)">Datos de Crédito y Envío</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div><div class="view-label">Tiempo Crédito</div><div class="view-value" id="v_tiempoCredito"></div></div>
+<div><div class="view-label">Monto Crédito</div><div class="view-value" id="v_montoCredito"></div></div>
+<div><div class="view-label">Monto Envío</div><div class="view-value" id="v_montoEnvio"></div></div>
+<div><div class="view-label">Incoterm</div><div class="view-value" id="v_incoterm"></div></div>
+</div></div></div>
 <div style="grid-column:1/-1"><div class="view-label">Marcas (<span id="v_marcas_count">0</span>)</div><div id="v_marcas" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;padding:10px"></div></div>
 </div>
 <div style="display:flex;gap:12px;margin-top:22px">
@@ -264,7 +276,11 @@ function render(){
   const telefono=(p.telefono||'').toLowerCase();
   const correo=(p.correo||'').toLowerCase();
   const ubicacion=(p.ubicacion||p.direccion||'').toLowerCase();
-  const s=!q || nombre.includes(q) || contacto.includes(q) || ciudad.includes(q) || tipo.includes(q) || marcasStr.includes(q) || telefono.includes(q) || correo.includes(q) || ubicacion.includes(q);
+  const tiempo=(p.tiempoCredito||'').toLowerCase();
+  const montoC=(p.montoCredito||'').toLowerCase();
+  const montoE=(p.montoEnvio||'').toLowerCase();
+  const inco=(p.incoterm||'').toLowerCase();
+  const s=!q || nombre.includes(q) || contacto.includes(q) || ciudad.includes(q) || tipo.includes(q) || marcasStr.includes(q) || telefono.includes(q) || correo.includes(q) || ubicacion.includes(q) || tiempo.includes(q) || montoC.includes(q) || montoE.includes(q) || inco.includes(q);
   return s && (fT==='todos'||p.tipoProveedor===fT);
  });
  document.getElementById('grid').innerHTML=filtered.map(p=>{
@@ -295,24 +311,42 @@ function render(){
  }).join('') || '<div style="padding:40px;color:var(--muted);text-align:center">Sin resultados</div>';
  renderMarcasCheck();
 }
+let selectedMarcasPersist = new Set();
 function renderMarcasCheck(filter=''){
   const container=document.getElementById('checkMarcas');
   if(!container) return;
+  // primero guardar lo que hay seleccionado actualmente en el set persistente
+  document.querySelectorAll('.chkMarca:checked').forEach(c=>selectedMarcasPersist.add(c.value));
+  // tambien remover si se deselecciono y esta visible
+  document.querySelectorAll('.chkMarca:not(:checked)').forEach(c=>{
+    // solo si el usuario lo deselecciono en la vista actual, lo quitamos. Para no borrar al filtrar, solo quitamos si el elemento estaba visible
+    const wasVisible = container.querySelector(`input[value="${CSS.escape(c.value)}"]`) !== null;
+    if(wasVisible && !c.checked){
+      // Si estaba visible y ahora no esta checked, fue un uncheck intencional
+      // Pero como ya iteramos los checked arriba, aqui solo necesitamos sincronizar deselecciones visibles
+    }
+  });
   const q=filter.toLowerCase().trim();
-  const filtered = q ? marcas.filter(m=>m.nombreMarca.toLowerCase().includes(q)) : marcas;
-  const selected = new Set([...document.querySelectorAll('.chkMarca:checked')].map(c=>c.value));
-  // mantener seleccionados aunque se filtre
-  const marcasToShow = q ? filtered : marcas;
+  const marcasToShow = q ? marcas.filter(m=>m.nombreMarca.toLowerCase().includes(q) || selectedMarcasPersist.has(m.nombreMarca)) : marcas;
+  // Orden: primero seleccionados, luego resto alfabetico
+  marcasToShow.sort((a,b)=>{
+    const aSel=selectedMarcasPersist.has(a.nombreMarca);
+    const bSel=selectedMarcasPersist.has(b.nombreMarca);
+    if(aSel && !bSel) return -1;
+    if(!aSel && bSel) return 1;
+    return a.nombreMarca.localeCompare(b.nombreMarca);
+  });
   container.innerHTML=marcasToShow.map(m=>{
-    const isSel = selected.has(m.nombreMarca);
-    return `<label class="marca-item ${isSel?'selected':''}"><input type="checkbox" value="${m.nombreMarca}" class="chkMarca" ${isSel?'checked':''} style="display:none" onchange="updateMarcasSel()"> ${m.nombreMarca}</label>`;
-  }).join('') || '<div style="padding:10px;color:var(--muted);font-size:12px">Sin marcas que coincidan</div>';
-  // re-bind click en label
+    const isSel = selectedMarcasPersist.has(m.nombreMarca);
+    return `<label class="marca-item ${isSel?'selected':''}"><input type="checkbox" value="${m.nombreMarca}" class="chkMarca" ${isSel?'checked':''} style="display:none"> ${m.nombreMarca}</label>`;
+  }).join('') || '<div style="padding:10px;color:var(--muted);font-size:12px">Sin marcas que coincidan. Seleccionadas: '+selectedMarcasPersist.size+'</div>';
   container.querySelectorAll('.marca-item').forEach(label=>{
     label.addEventListener('click', (e)=>{
       e.preventDefault();
       const chk=label.querySelector('input');
       chk.checked=!chk.checked;
+      if(chk.checked) selectedMarcasPersist.add(chk.value);
+      else selectedMarcasPersist.delete(chk.value);
       label.classList.toggle('selected', chk.checked);
       updateMarcasSel();
     });
@@ -321,10 +355,13 @@ function renderMarcasCheck(filter=''){
 }
 function filterMarcasCheck(){ const q=document.getElementById('searchMarcas').value; renderMarcasCheck(q); }
 function updateMarcasSel(){
-  const count=document.querySelectorAll('.chkMarca:checked').length;
   const el=document.getElementById('marcasCountSel');
-  if(el) el.textContent=count+' seleccionadas';
+  if(el) el.textContent=selectedMarcasPersist.size+' seleccionadas';
+  // sincronizar tambien los checkboxes invisibles del DOM por si se hace submit
 }
+function getMarcasSeleccionadas(){ return Array.from(selectedMarcasPersist); }
+function clearMarcasSeleccion(){ selectedMarcasPersist.clear(); }
+
 
 function renderGestionMarcas(){
  document.getElementById('listaGestionMarcas').innerHTML = marcas.map(m=>`
@@ -353,6 +390,10 @@ function openView(id){
   document.getElementById('v_telefono').innerHTML=p.telefono ? `<a href="tel:${p.telefono}" style="color:var(--ink)">${p.telefono}</a>` : '—';
   document.getElementById('v_correo').innerHTML=p.correo ? `<a href="mailto:${p.correo}" style="color:var(--accent)">${p.correo}</a>` : '—';
   document.getElementById('v_ubicacion').innerHTML=p.ubicacion||p.direccion ? `<a href="https://maps.google.com/?q=${encodeURIComponent(p.ubicacion||p.direccion)}" target="_blank" style="color:var(--ink);text-decoration:underline">${p.ubicacion||p.direccion}</a>` : '—';
+  document.getElementById('v_tiempoCredito').textContent=p.tiempoCredito||'—';
+  document.getElementById('v_montoCredito').textContent=p.montoCredito||'—';
+  document.getElementById('v_montoEnvio').textContent=p.montoEnvio||'—';
+  document.getElementById('v_incoterm').innerHTML=p.incoterm ? `<span class="badge" style="background:var(--ink);color:#fff">${p.incoterm}</span>` : '—';
   const marcasArr = Array.isArray(p.marcas) ? p.marcas : [];
   document.getElementById('v_marcas_count').textContent=marcasArr.length;
   document.getElementById('v_marcas').innerHTML=marcasArr.length ? marcasArr.map(m=>`<span class="marca-chip">${m}</span>`).join('') : '<span style="font-size:12px;color:var(--muted)">Sin marcas</span>';
@@ -361,8 +402,8 @@ function openView(id){
 function closeView(){document.getElementById('modalView').classList.remove('open'); viewId=null;}
 function editFromView(){ if(viewId){ closeView(); openEdit(viewId);} }
 
-function openAdd(){editingId=null;document.getElementById('f_nombreProveedor').value='';document.getElementById('f_contacto').value='';document.getElementById('f_telefono').value='';document.getElementById('f_correo').value='';document.getElementById('f_ciudad').value='';document.getElementById('f_ubicacion').value='';document.getElementById('searchMarcas').value='';renderMarcasCheck('');document.getElementById('modalForm').classList.add('open')}
-function openEdit(id){const p=proveedores.find(x=>x._id===id);if(!p)return;editingId=id;document.getElementById('f_nombreProveedor').value=p.nombreProveedor||p.nombre||'';document.getElementById('f_tipoProveedor').value=p.tipoProveedor||'general';document.getElementById('f_contacto').value=p.contacto||'';document.getElementById('f_telefono').value=p.telefono||'';document.getElementById('f_correo').value=p.correo||'';document.getElementById('f_ciudad').value=p.ciudad||'';document.getElementById('f_ubicacion').value=p.ubicacion||p.direccion||'';document.getElementById('searchMarcas').value='';renderMarcasCheck(''); setTimeout(()=>{ document.querySelectorAll('.chkMarca').forEach(c=>{ const isSel=(p.marcas||[]).includes(c.value); c.checked=isSel; const label=c.closest('.marca-item'); if(label) label.classList.toggle('selected', isSel); }); updateMarcasSel(); },50); document.getElementById('modalForm').classList.add('open')}
+function openAdd(){editingId=null;document.getElementById('f_nombreProveedor').value='';document.getElementById('f_contacto').value='';document.getElementById('f_telefono').value='';document.getElementById('f_correo').value='';document.getElementById('f_ciudad').value='';document.getElementById('f_ubicacion').value='';document.getElementById('f_tiempoCredito').value='';document.getElementById('f_montoCredito').value='';document.getElementById('f_montoEnvio').value='';document.getElementById('f_incoterm').value='';document.getElementById('searchMarcas').value='';clearMarcasSeleccion();renderMarcasCheck('');document.getElementById('modalForm').classList.add('open')}
+function openEdit(id){const p=proveedores.find(x=>x._id===id);if(!p)return;editingId=id;document.getElementById('f_nombreProveedor').value=p.nombreProveedor||p.nombre||'';document.getElementById('f_tipoProveedor').value=p.tipoProveedor||'general';document.getElementById('f_contacto').value=p.contacto||'';document.getElementById('f_telefono').value=p.telefono||'';document.getElementById('f_correo').value=p.correo||'';document.getElementById('f_ciudad').value=p.ciudad||'';document.getElementById('f_ubicacion').value=p.ubicacion||p.direccion||'';document.getElementById('f_tiempoCredito').value=p.tiempoCredito||'';document.getElementById('f_montoCredito').value=p.montoCredito||'';document.getElementById('f_montoEnvio').value=p.montoEnvio||'';document.getElementById('f_incoterm').value=p.incoterm||'';document.getElementById('searchMarcas').value='';clearMarcasSeleccion();(p.marcas||[]).forEach(m=>selectedMarcasPersist.add(m));renderMarcasCheck(''); document.getElementById('modalForm').classList.add('open')}
 function closeModal(){document.getElementById('modalForm').classList.remove('open')}
 function openDel(id,type){deleteId=id;deleteType=type;document.getElementById('delMsg').textContent=type==='marca'?'¿Eliminar marca?':type==='tipo'?'¿Eliminar tipo?':'¿Eliminar proveedor? Se eliminará de MongoDB.';document.getElementById('modalDel').classList.add('open')}
 function closeDel(){document.getElementById('modalDel').classList.remove('open');deleteId=null;deleteType=null}
@@ -395,8 +436,8 @@ async function saveGestionTipo(){
 
 async function saveProveedor(){
  const nombre=document.getElementById('f_nombreProveedor').value.trim(); if(!nombre){toast('nombre obligatorio');return}
- const marcasSel=[...document.querySelectorAll('.chkMarca:checked')].map(c=>c.value);
- const body={nombreProveedor:nombre,tipoProveedor:document.getElementById('f_tipoProveedor').value,contacto:document.getElementById('f_contacto').value,telefono:document.getElementById('f_telefono').value,correo:document.getElementById('f_correo').value,ciudad:document.getElementById('f_ciudad').value,ubicacion:document.getElementById('f_ubicacion').value,direccion:document.getElementById('f_ubicacion').value,marcas:marcasSel};
+ const marcasSel=getMarcasSeleccionadas();
+ const body={nombreProveedor:nombre,tipoProveedor:document.getElementById('f_tipoProveedor').value,contacto:document.getElementById('f_contacto').value,telefono:document.getElementById('f_telefono').value,correo:document.getElementById('f_correo').value,ciudad:document.getElementById('f_ciudad').value,ubicacion:document.getElementById('f_ubicacion').value,direccion:document.getElementById('f_ubicacion').value,tiempoCredito:document.getElementById('f_tiempoCredito').value,montoCredito:document.getElementById('f_montoCredito').value,montoEnvio:document.getElementById('f_montoEnvio').value,incoterm:document.getElementById('f_incoterm').value,marcas:marcasSel};
  try{
   if(editingId){await api('/api/proveedores?id='+editingId,{method:'PUT',body:JSON.stringify(body)})}else{await api('/api/proveedores',{method:'POST',body:JSON.stringify(body)})}
   toast('Guardado'); closeModal(); load();
